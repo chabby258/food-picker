@@ -476,6 +476,14 @@ details.mini[open] summary:after{content:" ▲"}
 .note{position:absolute;bottom:45%;z-index:5;font-size:18px;color:var(--ink);font-style:normal;pointer-events:none;animation:noteUp 1.6s steps(8) infinite}
 @keyframes noteUp{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-70px);opacity:0}}
 .who.both .say{white-space:nowrap}
+.scene.rain .duo{gap:84px}
+.scene.rain:not(.yay):not(.solo) .duo{gap:0}
+.scene.rain:not(.yay):not(.solo) .duo .who.xx{margin-left:-8px}
+.scene.rain:not(.yay):not(.solo) .who.zn .say{white-space:nowrap;max-width:none}
+.scene.rain.yay .who svg{animation-name:yay2}
+@keyframes yay2{50%{transform:translateY(-8px)}}
+.scene.rain.dancing .duo .who svg{animation-name:dance2}
+@keyframes dance2{50%{transform:translateY(-8px)}}
 .dish{cursor:pointer}
 .who.both .say.l{right:auto;left:-10px}
 .who.both .say.r{left:auto;right:-10px;bottom:calc(100% + 34px)}
@@ -1130,21 +1138,49 @@ details.mini[open] summary:after{content:" ▲"}
     if(fx&&fx.back){ const HB=who==='zn'?'#2B211E':'#2A2420', y1=who==='zn'?9:8; for(let y=4;y<=y1;y++) for(let x=3;x<=8;x++) if(res.m.has(x+','+y)) res.m.set(x+','+y,HB); }
     if(fx&&fx.blush){ res.m.set('3,7','#FF95A5'); res.m.set('4,7','#FF95A5'); res.m.set('7,7','#FF95A5'); res.m.set('8,7','#FF95A5'); }
     return res; }
-  /* 下雨撐傘：張恩粉紅傘、璿璿藍傘，傘柄握在靠對方那隻手 */
-  function addUmb(m,cx,top,hand,hx,c1,c2){
-    const set=(x,y,c)=>m.set(x+','+y,c);
-    set(cx,top-1,K); set(cx+1,top-1,K);
-    for(let x=cx-2;x<=cx+3;x++) set(x,top,c1);
-    for(let x=cx-5;x<=cx+6;x++) set(x,top+1,(x===cx-2||x===cx+3)?c2:c1);
-    for(let x=cx-7;x<=cx+8;x++) set(x,top+2,(x===cx-3||x===cx+4)?c2:c1);
-    for(let x=cx-7;x<=cx+8;x++) if((x-cx)%3!==1) set(x,top+3,c2);
-    for(let y=top+3;y<hand;y++) set(hx,y,'#3E3A39');
-    set(hx,hand,'#3E3A39'); set(hx,hand+1,'#3E3A39'); set(hx-1,hand+2,'#3E3A39');
+  /* ===== 下雨撐傘（照真的撐法：傘柄直直往上、手握在肩膀高度，傘面是圓頂） ===== */
+  // 傘面：第 0 列是傘尖，接著 H 列圓頂，最後一列是傘緣的波浪
+  function canopyRows(r,c1,c2){
+    const H=Math.round(r*.5)+1, W=2*r+1, rows=[];
+    const ribs=[-r,-Math.round(r/2),0,Math.round(r/2),r];
+    rows.push(' '.repeat(r)+'5'+' '.repeat(r));
+    for(let i=0;i<H;i++){ const t=(H-1-i)/H, w=Math.max(1,Math.round(r*Math.sqrt(1-t*t)));
+      let row=''; for(let x=-r;x<=r;x++){ if(Math.abs(x)>w){ row+=' '; continue; }
+        const isRib=ribs.some(k=>Math.round(k*w/r)===x)&&i>0; row+=isRib?c2:c1; } rows.push(row); }
+    let sc=''; for(let x=-r;x<=r;x++){ const d=Math.min(...ribs.map(k=>Math.abs(k-x))); sc+=(d>=1&&Math.abs(x)<r)?c1:' '; } rows.push(sc);
+    return rows.map(r=>r.replace(/ /g,'.'));
   }
-  function umbFor(who,m){ if(who==='zn') addUmb(m,5,-7,17,11,'#FF95A5','#E06B80'); else addUmb(m,5,-12,20,11,'#76C0EC','#425B9A'); }
+  // 誰拿傘：solo＝自己右手撐、share＝璿璿左手幫兩個人撐、none＝不拿
+  function umbSpec(who,mode){
+    if(mode==='share') return who==='xx'?{c:0,r:14,bot:-6,col:['3','4']}:null;
+    if(mode!=='solo') return null;
+    return who==='zn'?{c:11,r:10,bot:-2,col:['1','2']}:{c:11,r:10,bot:-6,col:['3','4']};
+  }
+  function addShaft(m,who,mode,sp){
+    const H=Math.round(sp.r*.5)+1, tip=sp.bot-H-1, set=(x,y,c)=>m.set(x+','+y,c);
+    const left=mode==='share', col=left?1:10, sh=who==='zn'?11:10, arm=m.get(col+','+(sh+1))||SK;
+    const handY=sh+1, bottom=who==='zn'?17:20;
+    for(let y=sh+3;y<=bottom+1;y++) m.delete(col+','+y);
+    for(let y=sh;y<=sh+2;y++) set(col,y,arm);                     // 上臂
+    for(let y=tip;y<=handY+3;y++) set(sp.c,y,'#3E3A39');          // 傘柄（直直往上）
+    const out=left?-1:1; set(sp.c+out,handY+4,'#3E3A39'); set(sp.c+2*out,handY+3,'#3E3A39');  // J 型握把
+    set(sp.c,handY,SK); set(sp.c,handY+1,SK); set(col,sh+2,arm);  // 手握在肩膀高度
+  }
   function person(who,unit,eat,o,fx){ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); const res=rawRes(who,eat,o,fx);
-    if(state.rain) umbFor(who,res.m);
-    toSvg(s,res,unit,fx&&fx.back?false:state.glasses[who]); return s; }
+    const mode=fx&&fx.umb, sp=state.rain?umbSpec(who,mode):null;
+    if(sp) addShaft(res.m,who,mode,sp);
+    toSvg(s,res,unit,fx&&fx.back?false:state.glasses[who]);
+    if(sp) s.dataset.umb=JSON.stringify(sp);
+    return s; }
+  // 傘面疊在最上層（不擋到點人物）
+  function placeUmb(d){
+    const old=d.querySelector('.umbc'); if(old) old.remove();
+    const sv=d.querySelector('svg'); if(!sv||!sv.dataset.umb) return;
+    const sp=JSON.parse(sv.dataset.umb), H=Math.round(sp.r*.5)+1, vb=sv.viewBox.baseVal, unit=sv.width.baseVal.value/vb.width;
+    const key='umb'+sp.r+sp.col[0]; if(!SPR[key]) SPR[key]=canopyRows(sp.r,sp.col[0],sp.col[1]);
+    const L=sp.c-sp.r-1, T=sp.bot-H-1-1, rs=sv.getBoundingClientRect(), rd=d.getBoundingClientRect(), ox=rs.left-rd.left, oy=rs.top-rd.top;
+    d.insertAdjacentHTML('beforeend',sprite(key,unit,'umbc',`position:absolute;pointer-events:none;z-index:3;left:${ox+(L-vb.x)*unit}px;top:${oy+(T-vb.y)*unit}px`));
+  }
   /* 兩個人合成一張圖：牽手、摸頭、抱抱 */
   function comboSvg(pose,unit){
     const zn=rawRes('zn',false,null,{blush:true}), xx=rawRes('xx',false), m=new Map(), dz=5;
@@ -1197,12 +1233,12 @@ details.mini[open] summary:after{content:" ▲"}
       set(16,16+dz-1,SK); set(1,11+dz,SK);
       heart(6,-6);
     }
-    if(state.rain){ const cx=Math.round((dx+11)/2)-1, Y1='#76C0EC', Y2='#425B9A';
-      set(cx,-13,K); set(cx+1,-13,K);
-      const half=Math.ceil((dx+14)/2);
-      [[3,0],[Math.round(half*.6),1],[half,2]].forEach(([w,r])=>{ for(let x=cx-w+1;x<=cx+w;x++) set(x,-12+r,Y1); });
-      for(let x=cx-half+1;x<=cx+half;x++) if((x-cx)%3!==1) set(x,-9,Y2);
-      for(let y=-9;y<=-6;y++) set(cx,y,K); }
+    if(state.rain){ // 兩個人靠在一起：璿璿撐一把大傘
+      const mid=Math.round((dx+11)/2), r=Math.ceil((dx+12)/2)+1, rows=canopyRows(r,'3','4'), H=rows.length-2, top=-6-H-1, xa=xx.m.get('1,12')||SK;
+      for(let y=top;y<=12;y++) set(mid,y,K);
+      rows.forEach((row,yy)=>[...row].forEach((c,x)=>{ if(c!=='.') set(mid-r+x,top+yy,PAL[c]); }));
+      for(let x=Math.min(mid+1,dx);x<=Math.max(mid+1,dx);x++) set(x,11,xa);
+      set(mid,10,SK); set(mid,11,SK); }
     const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
     toSvg(s,{m,glasses:6,glassList:[{dx:0,r:6+dz,on:state.glasses.zn},{dx,r:6,on:state.glasses.xx}]},unit,false);
     return s;
@@ -1213,6 +1249,7 @@ details.mini[open] summary:after{content:" ▲"}
   const dropsHTML=()=>`<div class="drops">${Array.from({length:22},(_,i)=>`<i style="left:${(i*4.6+Math.random()*3).toFixed(1)}%;animation-delay:${(-Math.random()).toFixed(2)}s;animation-duration:${(.6+Math.random()*.4).toFixed(2)}s"></i>`).join('')}</div>`;
   /* ---------- 天氣小道具（像素） ---------- */
   const PAL={K:'#3E3A39',W:'#FFFFFF',g:'#91AE6E',G:'#6F8A52',b:'#C9A06A',B:'#9C6B48',c:'#7A5A48',r:'#E8574F',R:'#B83A3A',p:'#FF95A5',P:'#E06B80',y:'#FFE07A',Y:'#E8B83A',o:'#E8833A',O:'#C9573A',s:'#DCEFFA',S:'#76C0EC',n:'#425B9A',k:'#2E2622',w:'#EEF2FA',v:'#C6B5EA',m:'#E8D3A8'};
+  Object.assign(PAL,{'1':'#FF95A5','2':'#E06B80','3':'#76C0EC','4':'#425B9A','5':'#3E3A39'});
   const SPR={
     palm:["..GG....GG...","GggG..GggG..","GgggGgGgggG.","..GgggggG...",".GgGcccGgG..","Gg..cccc.gG.","G.....bB..G.","......bB....",".....bB.....",".....bB.....",".....Bb.....","......bB....","......bB....","......Bb....",".....bBbB..."],
     melon:["g........g","gr.....rrg",".grkrrkrg.",".grrrrrrg.","..grkrrg..","..ggrrgg..","...gggg..."],
@@ -1318,12 +1355,12 @@ details.mini[open] summary:after{content:" ▲"}
     opts.who.forEach((w,i)=>{
       const d=document.createElement('div'); d.className='who '+w;
       d.innerHTML=`<div class="say ${opts.say&&opts.say[i]?'on':''}">${opts.say&&opts.say[i]?esc(opts.say[i]):''}</div>`;
-      d.appendChild(person(w,opts.unit||4,opts.eat));
+      d.dataset.umb=opts.who.length===2&&!opts.dish?'share':'solo'; d.appendChild(person(w,opts.unit||4,opts.eat,undefined,{umb:d.dataset.umb}));
       d.insertAdjacentHTML('beforeend',`<span class="tag">${w==='zn'?'張恩':'璿璿'}</span>`);
       duo.appendChild(d);
     });
     el.insertAdjacentHTML('beforeend',petHTML(!!opts.eat));
-    if(state.pet.type==='bird') requestAnimationFrame(()=>perchBird(el));
+    requestAnimationFrame(()=>{ el.querySelectorAll('.duo .who').forEach(placeUmb); if(state.pet.type==='bird') perchBird(el); });
     if(!el._poke){ el._poke=true; el.addEventListener('click',e=>pokeScene(el,e)); }
     if(opts.dish&&opts.who.length===2) requestAnimationFrame(()=>centerTable(el));
   }
@@ -1534,7 +1571,7 @@ details.mini[open] summary:after{content:" ▲"}
     const line=rand(POKE[who]); lastSaid=line.replace(/[😳😆♡]/g,'').trim();
     say.textContent=line; say.classList.add('on');
     hopEl(w,'poke'); sfx.blip();
-    if(who==='zn'){ const old=w.querySelector('svg'); const nw=person('zn',4,false,undefined,{blush:true}); w.replaceChild(nw,old); setTimeout(()=>{ if(nw.parentNode) w.replaceChild(person('zn',4,false),nw); },1800); }
+    if(who==='zn'){ const old=w.querySelector('svg'); const nw=person('zn',4,false,undefined,{blush:true,umb:w.dataset.umb}); w.replaceChild(nw,old); setTimeout(()=>{ if(nw.parentNode) w.replaceChild(person('zn',4,false,undefined,{umb:w.dataset.umb}),nw); },1800); }
   }
   const POSE={
     hold:{zn:'牽手手 💕',xx:'嘿嘿～不放開',pet:{cat:'喵…閃到我了',dog:'汪！我也要牽',bird:'放閃！放閃！'}},
@@ -1583,7 +1620,7 @@ details.mini[open] summary:after{content:" ▲"}
     sfx.fanfare(); setTimeout(()=>box.remove(),2600);
   }
   /* 鬧脾氣 → 另一個人去哄 */
-  function sulkView(w,who,on){ const old=w.querySelector('svg'); if(old) w.replaceChild(person(who,4,false,undefined,on?{back:true}:undefined),old); w.classList.toggle('sulk',on); }
+  function sulkView(w,who,on){ const old=w.querySelector('svg'); if(old) w.replaceChild(person(who,4,false,undefined,on?{back:true,umb:w.dataset.umb}:{umb:w.dataset.umb}),old); w.classList.toggle('sulk',on); }
   function endSulk(sc){ const who=sc._sulk; sc._sulk=null; clearTimeout(sc._sulkT); const w=who&&sc.querySelector('.duo .who.'+who); if(w) sulkView(w,who,false); return who; }
   function sulk(sc,who){
     const other=who==='zn'?'xx':'zn', w=sc.querySelector('.duo .who.'+who), o=sc.querySelector('.duo .who.'+other); if(!w||!o) return;
