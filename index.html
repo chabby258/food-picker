@@ -1202,14 +1202,20 @@ details.mini[open] summary:after{content:" ▲"}
       [[8,4],[7,4],[6,4],[8,3],[7,3]].forEach(([x,y])=>set(x,y,SK));
       heart(1,-3);
     } else if(pose==='hi5'){
-      dx=17; const za=zn.m.get('10,12')||SK, xa=xx.m.get('1,12')||SK, Y='#FFE07A';
+      // 照身高：張恩手臂伸直往上，璿璿手肘彎一點，兩個手掌在中間差不多張恩頭頂的高度拍在一起
+      dx=18; const za=zn.m.get('10,12')||SK, zf=zn.m.get('10,15')||SK, xa=xx.m.get('1,12')||SK, xf=xx.m.get('1,16')||SK, Y='#FFE07A';
       for(let y=11;y<=17;y++) zn.m.delete('10,'+y);
       for(let y=10;y<=21;y++) xx.m.delete('1,'+y);
       put(zn,0,dz); put(xx,dx,0);
-      [[11,15],[11,14],[12,13],[12,12],[13,11],[13,10],[14,9]].forEach(([x,y])=>set(x,y,za));   // 張恩舉右手
-      [[18,10],[17,9],[16,8]].forEach(([x,y])=>set(x,y,xa));                                      // 璿璿舉左手
-      [[14,8],[14,7],[14,6],[15,8],[15,7],[15,6]].forEach(([x,y])=>set(x,y,SK));                  // 兩隻手掌拍在一起
-      [[14,3],[15,3],[12,4],[17,4],[11,2],[18,2],[14,0],[15,0]].forEach(([x,y])=>set(x,y,Y));      // 啪！的閃光
+      // 張恩：右手斜斜往上伸直（兩格粗，上臂袖子、前臂照衣服）
+      [[10,16],[10,15],[11,15],[11,14],[12,14]].forEach(([x,y])=>set(x,y,za));
+      [[12,13],[13,13],[13,12],[14,12],[14,11]].forEach(([x,y])=>set(x,y,zf));
+      // 璿璿：左手手肘往下、前臂往上
+      [[19,10],[19,11],[18,11],[18,12]].forEach(([x,y])=>set(x,y,xa));
+      [[17,12],[17,11],[16,11],[16,10]].forEach(([x,y])=>set(x,y,xf));
+      // 兩個手掌在中間拍在一起
+      [[14,10],[14,9],[14,8],[15,10],[15,9],[15,8]].forEach(([x,y])=>set(x,y,SK));
+      [[14,6],[15,6],[12,7],[17,7]].forEach(([x,y])=>set(x,y,Y));                       // 啪！
     } else if(pose==='feedxx'){
       dx=14; const xa=xx.m.get('1,12')||SK;
       for(let y=10;y<=21;y++) xx.m.delete('1,'+y);
@@ -1234,13 +1240,11 @@ details.mini[open] summary:after{content:" ▲"}
       [[9,10],[9,11],[9,12],[10,13],[10,14]].forEach(([x,y])=>set(x,y,xa));
       for(let x=1;x<=10;x++) set(x,10+dz,xa);
       put(zn,0,dz);                                     // 張恩站在前面，擋住後面的手臂
-      // 看得見的部分：從她右肩頭髮上搭過來、脖子後面穿過、手掌搭在她左肩
+      // 手臂在她肩膀後面（被她擋住），只看得到脖子兩旁露出一點袖子、還有搭在她左肩上的手
       const lum=c=>{ const n=parseInt(c.slice(1),16); return ((n>>16)&255)*.3+((n>>8)&255)*.59+(n&255)*.11; };
       const sv=lum(xa)<80?'#6A6260':xa;
-      [[11,7+dz],[11,8+dz],[11,9+dz],[10,9+dz],[10,10+dz],[9,10+dz],[8,10+dz],[7,10+dz],[4,10+dz],[3,10+dz],[2,10+dz]].forEach(([x,y])=>set(x,y,sv));
-      for(let x=2;x<=10;x++) set(x,11+dz,sv);                                  // 整隻手臂搭在她肩膀上（兩格粗才看得出來）
-      for(let x=1;x<=10;x++) set(x,12+dz,K);                                   // 手臂下緣描線
-      [[0,10+dz],[1,10+dz],[0,11+dz],[1,11+dz],[0,12+dz]].forEach(([x,y])=>set(x,y,SK));   // 手掌搭在她左肩
+      [[3,10+dz],[4,10+dz],[7,10+dz],[8,10+dz]].forEach(([x,y])=>{ if(!zn.m.has(x+','+(y-dz))) set(x,y,sv); });
+      [[0,10+dz],[1,10+dz],[0,11+dz],[1,11+dz]].forEach(([x,y])=>set(x,y,SK));   // 手掌從後面搭到她左肩上
       for(let x=9;x<=15;x++) set(x,17+dz-1,za);       // 張恩抱住璿璿的腰
       set(16,16+dz-1,SK);
       heart(6,-6);
@@ -1626,8 +1630,10 @@ details.mini[open] summary:after{content:" ▲"}
     sfx.fanfare();
   }
   /* 先戳一個、再戳另一個 → 隨機一種兩人互動 */
+  let playBag=[];
   function twoPlay(sc,first){
-    const a=rand(['hold','pat','hug','hi5','dance','feed','heart']);
+    if(!playBag.length) playBag=shuffle(['hold','pat','hug','hi5','dance','feed','heart']);   // 7 種輪流抽完才會重複
+    const a=playBag.pop();
     if(a==='dance') danceTime(sc); else if(a==='feed') feedTime(sc,first); else if(a==='heart') heartCombo(sc); else doPose(sc,a);
   }
   /* 下雨：寵物躲到傘下 */
