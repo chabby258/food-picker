@@ -447,6 +447,9 @@ details.mini[open] summary:after{content:" ▲"}
 .pet .pet-say:after{left:50%;margin-left:-3px}
 .pet.hop2{animation:pokej .45s steps(3)}
 @keyframes petbob{50%{transform:translateY(-2px)}}
+.pet.perch{animation:perchbob 1.2s steps(2) infinite}
+.pet.perch .tag{display:none}
+@keyframes perchbob{50%{transform:translateY(-2px) rotate(-4deg)}}
 .petbowl{position:absolute;right:-18px;bottom:16px;width:16px;height:8px;background:#76C0EC;border:2px solid var(--ink);border-top:4px solid #C9A06A}
 .pet-name{border:2px solid var(--ink);padding:1px 6px;width:80px;font-size:13px;border-radius:0;outline:none;background:#fff}
 .pet-lv{font-size:12px;color:var(--muted);align-self:center}
@@ -455,6 +458,15 @@ details.mini[open] summary:after{content:" ▲"}
 .tm .tg{margin:0}
 .mwin.wide{width:min(440px,100%)}
 .pet{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+
+.duo{transition:gap .6s steps(6)}
+.duo.holding{gap:6px!important}
+.holdheart{position:absolute;left:50%;top:38%;transform:translateX(-50%);z-index:5;animation:pop .4s ease-out}
+.pet.sleep{animation:none}
+.pet.sleep svg{filter:saturate(.7) brightness(.95)}
+.shoot{position:absolute;z-index:3;width:46px;height:6px;border:none;padding:0;cursor:pointer;background:linear-gradient(90deg,rgba(255,243,196,0),#FFF3C4 70%,#fff);transform:rotate(-20deg);animation:shoot 1.8s linear forwards}
+.shoot:after{content:"";position:absolute;right:-3px;top:-3px;width:12px;height:12px;background:#fff;box-shadow:0 0 8px #FFF3C4}
+@keyframes shoot{from{translate:0 0;opacity:1}to{translate:-180px 70px;opacity:0}}
 
 /* path-style brand */
 .brand{display:inline-flex;align-items:center;background:#fff!important;border:2px solid var(--ink)!important;border-radius:2px!important;box-shadow:3px 3px 0 var(--ink)!important;padding:3px 10px 3px 8px!important;font-size:17px;letter-spacing:1px;white-space:nowrap}
@@ -1100,6 +1112,7 @@ details.mini[open] summary:after{content:" ▲"}
     const top=who==='zn'?0:-4, sp=specialDay();
     if((sp==='bd_zn'&&who==='zn')||(sp==='bd_xx'&&who==='xx')) addHat(res.m,top,'party');
     if(sp==='xmas') addHat(res.m,top,'santa');
+    if(fx&&fx.hold){ if(who==='zn'){ res.m.set('11,16',SK); res.m.set('12,17',SK); } else { res.m.set('0,19',SK); res.m.set('-1,20',SK); } }
     if(fx&&fx.blush){ res.m.set('3,7','#FF95A5'); res.m.set('4,7','#FF95A5'); res.m.set('7,7','#FF95A5'); res.m.set('8,7','#FF95A5'); }
     toSvg(s,res,unit,state.glasses[who]); return s; }
   function sceneClass(){ const sp=specialDay(); return 'scene '+(state.rain?'rain':curWx())+' tp-'+timePhase()+(sp?' sp-'+sp:''); }
@@ -1218,8 +1231,18 @@ details.mini[open] summary:after{content:" ▲"}
       duo.appendChild(d);
     });
     el.insertAdjacentHTML('beforeend',petHTML(!!opts.eat));
+    if(state.pet.type==='bird') requestAnimationFrame(()=>perchBird(el));
     if(!el._poke){ el._poke=true; el.addEventListener('click',e=>pokeScene(el,e)); }
     if(opts.dish&&opts.who.length===2) requestAnimationFrame(()=>centerTable(el));
+  }
+  function perchBird(el){
+    const pet=el.querySelector('.pet'), host=el.querySelector('.who.xx')||el.querySelector('.who'); if(!pet||!host) return;
+    const sv=host.querySelector('svg'), sw=+sv.dataset.w||40, sh=+sv.getAttribute('height')||140;
+    const scH=el.clientHeight, duo=el.querySelector('.duo');
+    const cx=host.offsetLeft+(host.offsetWidth-sw)/2+(+sv.dataset.bc||.5)*sw;
+    const svgBottom=scH-(duo.offsetTop+host.offsetTop+sh);   // 從場景底部算 svg 底
+    const shoulder=svgBottom+sh*(host.classList.contains('xx')?.66:.58);
+    pet.classList.add('perch'); pet.style.left=(cx+6)+'px'; pet.style.bottom=shoulder+'px'; pet.style.marginLeft='0';
   }
   function centerTable(el){
     const t=el.querySelector('.table'); if(!t) return;
@@ -1311,9 +1334,10 @@ details.mini[open] summary:after{content:" ▲"}
   /* 寵物 */
   if(!state.pet) state.pet={type:'cat',name:'咪咪',fed:0};
   Object.assign(PAL,{j:'#EDB664',J:'#C98A3A',h:'#FFE9C4',e:'#3D4A57',i:'#F4A7A0',d:'#3B3F45',t:'#E08E4A',E:'#2A2D33'});
-  Object.assign(PAL,{u:'#4A6A8A',C:'#7B4A2A',z:'#4E2C17',l:'#D9A574',h:'#FFF1DC',j:'#EDA85C',J:'#C9823A'});
+  Object.assign(PAL,{q:'#9A9AA5',Q:'#D0D0D8',u:'#4A6A8A',C:'#7B4A2A',z:'#4E2C17',l:'#D9A574',h:'#FFF1DC',j:'#EDA85C',J:'#C9823A'});
   const PET={
     cat:[".J...J........","JiJ.JiJ.......","jjjhjjj.......","jujhujJjjjj...","jhhphhJjjjjj..",".hhhhhjjjjjjj.",".hhhjjjjjjjjjj",".hhjjjjjjjjjjj","..hhjjjjjjjjJ.","..hh.jjjjjjJJ."],
+    bird:["..yy......","...yy.....","..yyyy....",".yKyyy....","QyooyQ....",".yyyqqq...","..qqqqqq..","..qQQqqqq.","..qqqqqqqq","...qqqq.qq","...p..p..q"],
     dog:["...zCz..............","..CCCCC........C....",".CKCCCzz.......C....","KllCCzzzz....CC.....",".lllCzzzzCCCCCC.....","...ppzzzCCCCCCC.....","...CCCzzCCCCCCl.....","...CCCCCCCCCCCC.....","...ll.ll...ll.ll...."]
   };
 
@@ -1330,7 +1354,7 @@ details.mini[open] summary:after{content:" ▲"}
     PAL.o=PAL.o; return sprite('__pet',unit,'','');
   }
   function petHTML(eat){
-    const u=[0,2,2,3,3][petLv()];
+    const u=(state.pet.type==='bird'?[0,3,3,3,4]:[0,2,2,3,3])[petLv()];
     return `<div class="pet ${eat?'eating':''}" title="${esc(state.pet.name)}"><div class="say pet-say"></div>${petSvg(u)}${eat?'<span class="petbowl"></span>':''}<span class="tag">${esc(state.pet.name)}</span></div>`;
   }
   /* 時間＆特別日子的天空效果 */
@@ -1370,19 +1394,57 @@ details.mini[open] summary:after{content:" ▲"}
   SPR.lantern=["....K....","....K....","..yyyyy..",".rrrrrrr.","rrryyyrrr","rrrrrrrrr","rrryyyrrr",".rrrrrrr.","..yyyyy..","...y.y...","...y.y..."];
   /* 戳小人 */
   const POKE={zn:['討厭啦～ 😳','幹嘛戳我啦','嘿嘿 ♡','肚子餓了啦！'],xx:['嗯？怎麼了','被戳到了 😆','我在這裡～','要吃什麼？我請！']};
-  let taps=[], petTaps=0;
+  let taps=[], petTaps=0, lastPoke=null, lastSaid='';
+  const PET_TALK={cat:['喵～','喵嗚？','呼嚕呼嚕…'],dog:['汪！','汪汪～','嗚～'],bird:['你好！','啾啾～','吃飯飯！','張恩～','璿璿～']};
+  function petSay(pet,txt,ms){ if(pet.classList.contains('perch')){ const sc=pet.closest('.scene'); const h=sc&&(sc.querySelector('.who.xx .say')||sc.querySelector('.who .say')); if(h) h.classList.remove('on'); }
+    const s=pet.querySelector('.pet-say'); s.textContent=txt; s.classList.add('on'); clearTimeout(pet._t); pet._t=setTimeout(()=>s.classList.remove('on'),ms||1700); }
+  function hopEl(el,cls){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
   function pokeScene(sc,e){
-    const pet=e.target.closest('.pet');
-    if(pet){ const s=pet.querySelector('.pet-say'); petTaps=(petTaps||0)+1; s.textContent=petTaps%3===0?'（小聲）按住我 2 秒有驚喜喔…':(state.pet.type==='cat'?rand(['喵～','喵嗚？','呼嚕呼嚕…']):rand(['汪！','汪汪～','嗚～'])); s.classList.add('on');
-      pet.classList.remove('hop2'); void pet.offsetWidth; pet.classList.add('hop2'); sfx.blip(); clearTimeout(pet._t); pet._t=setTimeout(()=>s.classList.remove('on'),1600); return; }
+    wakePet(sc);
+    const pet=e.target.closest('.pet'), now=Date.now();
+    if(pet){
+      // 剛戳過人 → 那個人摸摸寵物
+      if(lastPoke&&now-lastPoke.t<2200&&sc.contains(lastPoke.el)){ petCuddle(sc,pet,lastPoke.el); lastPoke=null; return; }
+      petTaps=(petTaps||0)+1; const t=state.pet.type;
+      let txt=rand(PET_TALK[t]);
+      if(t==='bird'&&lastSaid&&Math.random()<.6) txt=`（學說話）${lastSaid}`;
+      if(petTaps%3===0) txt='（小聲）按住我 2 秒有驚喜喔…';
+      petSay(pet,txt); hopEl(pet,'hop2'); sfx.blip(); return; }
     const w=e.target.closest('.who'); if(!w) return;
     const who=w.classList.contains('zn')?'zn':'xx', say=w.querySelector('.say');
-    const now=Date.now(); taps=taps.filter(t=>now-t<3500); taps.push(now);
-    if(taps.length>=5&&sc.querySelectorAll('.who').length===2){ taps=[]; heartCombo(sc); return; }
-    say.textContent=rand(POKE[who]); say.classList.add('on');
-    w.classList.remove('poke'); void w.offsetWidth; w.classList.add('poke'); sfx.blip();
+    // 先戳一個、再戳另一個 → 牽手
+    if(lastPoke&&lastPoke.who!==who&&now-lastPoke.t<1800&&sc.querySelectorAll('.who').length===2){ lastPoke=null; taps=[]; holdHands(sc); return; }
+    taps=taps.filter(t=>now-t<3500); taps.push(now);
+    if(taps.length>=5&&sc.querySelectorAll('.who').length===2){ taps=[]; lastPoke=null; heartCombo(sc); return; }
+    lastPoke={who,t:now,el:w};
+    const line=rand(POKE[who]); lastSaid=line.replace(/[😳😆♡]/g,'').trim();
+    say.textContent=line; say.classList.add('on');
+    hopEl(w,'poke'); sfx.blip();
     if(who==='zn'){ const old=w.querySelector('svg'); const nw=person('zn',4,false,undefined,{blush:true}); w.replaceChild(nw,old); setTimeout(()=>{ if(nw.parentNode) w.replaceChild(person('zn',4,false),nw); },1800); }
   }
+  function holdHands(sc){
+    if(sc._holding) return; sc._holding=true;
+    const duo=sc.querySelector('.duo'), ws=[...sc.querySelectorAll('.who')];
+    ws.forEach(w=>{ const who=w.classList.contains('zn')?'zn':'xx'; const old=w.querySelector('svg'); w.replaceChild(person(who,4,false,undefined,{hold:true,blush:who==='zn'}),old);
+      const s=w.querySelector('.say'); s.textContent=who==='zn'?'牽手手 💕':'嘿嘿～不放開'; s.classList.add('on'); });
+    duo.classList.add('holding'); sfx.chime();
+    const h=document.createElement('div'); h.className='holdheart'; h.innerHTML=pxHeart('#FF95A5','width:22px;position:static;animation:none'); duo.appendChild(h);
+    const pet=sc.querySelector('.pet'); if(pet){ setTimeout(()=>{ petSay(pet,state.pet.type==='cat'?'喵…閃到我了':state.pet.type==='dog'?'汪！我也要牽':'放閃！放閃！',2000); hopEl(pet,'hop2'); },700); }
+    setTimeout(()=>{ duo.classList.remove('holding'); h.remove(); sc._holding=false;
+      ws.forEach(w=>{ const who=w.classList.contains('zn')?'zn':'xx'; const old=w.querySelector('svg'); if(old) w.replaceChild(person(who,4,false),old); w.querySelector('.say').classList.remove('on'); }); },4200);
+  }
+  function petCuddle(sc,pet,w){
+    const who=w.classList.contains('zn')?'zn':'xx';
+    const say=w.querySelector('.say'); say.textContent=state.pet.type==='bird'?'來，站我手上～':'乖～摸摸頭'; say.classList.add('on');
+    if(state.pet.type!=='bird'){ const target=w.offsetLeft+w.offsetWidth/2+(who==='zn'?18:-30); pet.style.transition='left .6s steps(6)'; pet.style.left=target+'px'; pet.style.marginLeft='0'; }
+    setTimeout(()=>{ petSay(pet,{cat:'呼嚕呼嚕 ♡',dog:'汪♡ 搖尾巴',bird:'啾♡ 蹭蹭'}[state.pet.type],2200); hopEl(pet,'hop2');
+      for(let i=0;i<5;i++){ const d=document.createElement('div'); d.innerHTML=pxHeart(i%2?'#FF95A5':'#E06B80',`left:${pet.offsetLeft+Math.random()*30}px;bottom:${30+Math.random()*10}px;width:${10+Math.random()*6}px;animation-duration:${1.6+Math.random()}s`); sc.querySelector('.fx').appendChild(d.firstChild); }
+      sfx.chime(); },650);
+  }
+  /* 寵物發呆太久會睡著 */
+  let idleT=null;
+  function wakePet(sc){ const pet=(sc||preview).querySelector('.pet'); if(pet&&pet.classList.contains('sleep')){ pet.classList.remove('sleep'); petSay(pet,'！？醒了',1200); } clearTimeout(idleT);
+    idleT=setTimeout(()=>{ const p=preview.querySelector('.pet'); if(p&&timePhase()!=='day'||p&&Math.random()<.7){ p.classList.add('sleep'); petSay(p,'Zzz…',600000); } },25000); }
   function heartCombo(sc){
     const says=sc.querySelectorAll('.who .say'); says.forEach(s=>{ s.textContent='比心 💕'; s.classList.add('on'); });
     sc.querySelectorAll('.who').forEach(w=>{ w.classList.remove('poke'); void w.offsetWidth; w.classList.add('poke'); });
@@ -1432,6 +1494,24 @@ details.mini[open] summary:after{content:" ▲"}
       b.querySelector('#tmNow').onclick=()=>{ previewTp=null; previewSp=null; closeModal(); renderChars(); renderLcd(); };
     });
   }
+  /* 驚喜1：晚上偶爾有流星，點到可以許願 */
+  setInterval(()=>{
+    const tp=timePhase(); if(!(tp==='night'||tp==='late')||Math.random()>.45) return;
+    const fx=preview.querySelector('.fx'); if(!fx) return;
+    const st=document.createElement('button'); st.className='shoot'; st.setAttribute('aria-label','流星'); st.style.top=(8+Math.random()*30)+'%'; st.style.left=(40+Math.random()*50)+'%';
+    st.onclick=e=>{ e.stopPropagation(); st.remove(); sfx.fanfare();
+      preview.querySelectorAll('.who .say').forEach((s,i)=>{ s.textContent=i?'希望每天都一起吃飯 ✨':'許願成功！✨'; s.classList.add('on'); });
+      const box=document.createElement('div'); box.className='combo'; box.textContent='🌠 抓到流星！願望會實現喔'; preview.appendChild(box); setTimeout(()=>box.remove(),2600); };
+    fx.parentNode.appendChild(st); setTimeout(()=>st.remove(),1900);
+  },22000);
+  /* 驚喜2：每天第一次打開，寵物會叼來今日推薦 */
+  setTimeout(()=>{
+    if(state.giftDay===dayKey(0)) return; const p=pool(); if(!p.length) return;
+    state.giftDay=dayKey(0); save(); const g=wPick(p);
+    const pet=preview.querySelector('.pet'); if(!pet) return;
+    petSay(pet,`${{cat:'叼',dog:'咬',bird:'銜'}[state.pet.type]}來一張美食券：今天推薦「${g.name}」！`,5000); hopEl(pet,'hop2'); sfx.chime();
+  },1500);
+  setTimeout(()=>wakePet(),0);
   /* 長按寵物 2 秒 → 時光機 */
   (function(){
     let timer=null, fired=false;
@@ -1448,11 +1528,11 @@ details.mini[open] summary:after{content:" ▲"}
   /* 寵物設定列 */
   function renderPetRow(){
     const lv=petLv(), nx=petNext(), f=state.pet.fed;
-    document.getElementById('petRow').innerHTML=`<button class="tg ${state.pet.type==='cat'?'on':''}" data-pet="cat">🐱 金漸層</button><button class="tg ${state.pet.type==='dog'?'on':''}" data-pet="dog">🐶 巧克力臘腸</button>
+    document.getElementById('petRow').innerHTML=`<button class="tg ${state.pet.type==='cat'?'on':''}" data-pet="cat">🐱 金漸層</button><button class="tg ${state.pet.type==='dog'?'on':''}" data-pet="dog">🐶 巧克力臘腸</button><button class="tg ${state.pet.type==='bird'?'on':''}" data-pet="bird">🦜 玄鳳鸚鵡</button>
       <input class="pet-name" id="petName" maxlength="6" value="${esc(state.pet.name)}">
       <span class="pet-lv">Lv.${lv}・吃了 ${f} 餐${nx===Infinity?'・已經長最大了！':`・再 ${nx-f} 餐長大`}</span>`;
   }
-  document.getElementById('petRow').addEventListener('click',e=>{ const b=e.target.closest('[data-pet]'); if(!b) return; state.pet.type=b.dataset.pet; if(['咪咪','臘腸'].includes(state.pet.name)) state.pet.name=state.pet.type==='cat'?'咪咪':'臘腸'; save(); renderPetRow(); renderChars(); });
+  document.getElementById('petRow').addEventListener('click',e=>{ const b=e.target.closest('[data-pet]'); if(!b) return; state.pet.type=b.dataset.pet; if(['咪咪','臘腸','啾啾'].includes(state.pet.name)) state.pet.name={cat:'咪咪',dog:'臘腸',bird:'啾啾'}[state.pet.type]; save(); renderPetRow(); renderChars(); });
   document.getElementById('petRow').addEventListener('change',e=>{ if(e.target.id!=='petName') return; state.pet.name=e.target.value.trim()||'咪咪'; save(); renderPetRow(); renderChars(); });
   function feedPet(){
     const before=petLv(); state.pet.fed++; save(); renderPetRow();
