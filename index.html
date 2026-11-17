@@ -443,14 +443,17 @@ details.mini[open] summary:after{content:" ▲"}
 .scene.yay.solo .pet{left:auto;right:8%}
 .pet svg{display:block}
 .pet .tag{font-size:11px;border:2px solid var(--ink);background:#fff;padding:0 4px;margin-top:1px}
-.pet .pet-say{left:50%;right:auto;transform:translateX(-50%);bottom:calc(100% + 2px);margin:0}
+.pet .pet-say{white-space:nowrap;left:50%;right:auto;transform:translateX(-50%);bottom:calc(100% + 2px);margin:0}
 .pet .pet-say:after{left:50%;margin-left:-3px}
 .pet.hop2{animation:pokej .45s steps(3)}
 @keyframes petbob{50%{transform:translateY(-2px)}}
 .petbowl{position:absolute;right:-18px;bottom:16px;width:16px;height:8px;background:#76C0EC;border:2px solid var(--ink);border-top:4px solid #C9A06A}
 .pet-name{border:2px solid var(--ink);padding:1px 6px;width:80px;font-size:13px;border-radius:0;outline:none;background:#fff}
 .pet-lv{font-size:12px;color:var(--muted);align-self:center}
-.tm .st-btns{margin-bottom:4px}
+.tm{padding:4px 14px 10px}
+.tm .st-btns{margin-bottom:4px;gap:8px}
+.tm .tg{margin:0}
+.mwin.wide{width:min(440px,100%)}
 .pet{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 
 /* path-style brand */
@@ -1367,10 +1370,10 @@ details.mini[open] summary:after{content:" ▲"}
   SPR.lantern=["....K....","....K....","..yyyyy..",".rrrrrrr.","rrryyyrrr","rrrrrrrrr","rrryyyrrr",".rrrrrrr.","..yyyyy..","...y.y...","...y.y..."];
   /* 戳小人 */
   const POKE={zn:['討厭啦～ 😳','幹嘛戳我啦','嘿嘿 ♡','肚子餓了啦！'],xx:['嗯？怎麼了','被戳到了 😆','我在這裡～','要吃什麼？我請！']};
-  let taps=[];
+  let taps=[], petTaps=0;
   function pokeScene(sc,e){
     const pet=e.target.closest('.pet');
-    if(pet){ const s=pet.querySelector('.pet-say'); s.textContent=state.pet.type==='cat'?rand(['喵～','喵嗚？','呼嚕呼嚕…']):rand(['汪！','汪汪～','嗚～']); s.classList.add('on');
+    if(pet){ const s=pet.querySelector('.pet-say'); petTaps=(petTaps||0)+1; s.textContent=petTaps%3===0?'（小聲）按住我 2 秒有驚喜喔…':(state.pet.type==='cat'?rand(['喵～','喵嗚？','呼嚕呼嚕…']):rand(['汪！','汪汪～','嗚～'])); s.classList.add('on');
       pet.classList.remove('hop2'); void pet.offsetWidth; pet.classList.add('hop2'); sfx.blip(); clearTimeout(pet._t); pet._t=setTimeout(()=>s.classList.remove('on'),1600); return; }
     const w=e.target.closest('.who'); if(!w) return;
     const who=w.classList.contains('zn')?'zn':'xx', say=w.querySelector('.say');
@@ -1413,6 +1416,7 @@ details.mini[open] summary:after{content:" ▲"}
   }
   function openTimeMachine(){
     sfx.chime();
+    mWin.classList.add('wide');
     openModal('⏰ 時光機.exe','yellow',b=>{
       b.insertAdjacentHTML('beforeend',`<div class="tm"><p class="m-msg" style="padding-top:4px">要去哪一天看看？</p>
         <div class="wr-who"><span class="tagz zn">時間</span></div><div class="st-btns" id="peekTp"></div>
@@ -1530,7 +1534,7 @@ details.mini[open] summary:after{content:" ▲"}
     mBody.innerHTML=''; build(mBody); modal.hidden=false;
     mWin.classList.remove('popin'); void mWin.offsetWidth; mWin.classList.add('popin');
   }
-  function closeModal(){ modal.hidden=true; }
+  function closeModal(){ modal.hidden=true; mWin.classList.remove('wide'); }
   document.getElementById('mClose').onclick=closeModal;
   modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
   const linesZn=[f=>`耶！吃${f}！`,f=>`${f}～我可以！`,f=>`就決定${f}啦`,f=>`想吃${f}好久了`];
