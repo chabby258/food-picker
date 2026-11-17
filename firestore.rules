@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 只開放「房間」裡的投票資料；必須知道房間密碼才讀得到
+    match /rooms/{room}/vote/{docId} {
+      allow get: if room.size() >= 4;
+      allow list: if false;
+      allow write: if room.size() >= 4
+                   && docId in ['round', 'zn', 'xx']
+                   && request.resource.data.size() <= 6;
+    }
+  }
+}
