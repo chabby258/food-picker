@@ -151,6 +151,11 @@ main{max-width:560px;margin:0 auto;padding:18px 16px 60px}
 .fc .front .e{font-size:26px}
 .fc .front .n{font-size:14px;line-height:1.3;margin-top:4px}
 .fc.picked .front{background:var(--yellow-soft)}
+.fc .face *,.fc .face:before,.fc .face:after{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.fc .back>*,.fc .back:before,.fc .back:after{transition:opacity 0s .2s}
+.fc.flip .back>*,.fc.flip .back:before,.fc.flip .back:after{opacity:0}
+.fc .front>*{transition:opacity 0s .2s}
+.fc:not(.flip) .front>*{opacity:0}
 .fc.dim{opacity:.45}
 .cards-stage.pick .fc{cursor:pointer}
 .cards-stage.pick .fc:hover .inner{transform:translateY(-5px)}
