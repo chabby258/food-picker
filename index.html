@@ -468,6 +468,12 @@ details.mini[open] summary:after{content:" ▲"}
 .shoot:after{content:"";position:absolute;right:-3px;top:-3px;width:12px;height:12px;background:#fff;box-shadow:0 0 8px #FFF3C4}
 @keyframes shoot{from{translate:0 0;opacity:1}to{translate:-180px 70px;opacity:0}}
 
+.who.both{position:relative}
+.who.both .say.l{right:auto;left:-10px}
+.who.both .say.r{left:auto;right:-10px;bottom:calc(100% + 34px)}
+.who.both .say.l:after{left:18px;right:auto}.who.both .say.r:after{right:18px;left:auto}
+.who{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+
 /* path-style brand */
 .brand{display:inline-flex;align-items:center;background:#fff!important;border:2px solid var(--ink)!important;border-radius:2px!important;box-shadow:3px 3px 0 var(--ink)!important;padding:3px 10px 3px 8px!important;font-size:17px;letter-spacing:1px;white-space:nowrap}
 .bt i{font-style:normal;color:var(--navy);margin-right:6px}
@@ -1006,8 +1012,8 @@ details.mini[open] summary:after{content:" ▲"}
   const SK='#F9D7BE', BL='#FF95A5', K='#3E3A39', W='#FFFFFF', MO='#D9667A';
   function px(){ const m=new Map(); const R=(x,y,w,h,c)=>{for(let i=0;i<w;i++)for(let j=0;j<h;j++)m.set((x+i)+','+(y+j),c);}; return {m,R}; }
   function face(R,eyeRow){ R(4,eyeRow,1,1,K); R(7,eyeRow,1,1,K); R(3,eyeRow+1,1,1,BL); R(8,eyeRow+1,1,1,BL); R(5,eyeRow+2,2,1,MO); }
-  function glassesSvg(r){
-    return `<g fill="rgba(220,239,250,.35)" stroke="${K}" stroke-width=".32"><rect x="3.15" y="${r-.55}" width="2.7" height="2.05" rx=".35"/><rect x="6.15" y="${r-.55}" width="2.7" height="2.05" rx=".35"/></g><line x1="5.85" y1="${r+.15}" x2="6.15" y2="${r+.15}" stroke="${K}" stroke-width=".32"/>`;
+  function glassesSvg(r,dx){
+    return `<g transform="translate(${dx||0} 0)"><g fill="rgba(220,239,250,.35)" stroke="${K}" stroke-width=".32"><rect x="3.15" y="${r-.55}" width="2.7" height="2.05" rx=".35"/><rect x="6.15" y="${r-.55}" width="2.7" height="2.05" rx=".35"/></g><line x1="5.85" y1="${r+.15}" x2="6.15" y2="${r+.15}" stroke="${K}" stroke-width=".32"/></g>`;
   }
   // 張恩 154cm：小貓短髮（黑色齊瀏海鮑伯頭，髮尾微翹）＋日系穿搭
   const ZN_OUT=[['dress','粉色洋裝'],['stripe','條紋長裙'],['cardigan','針織外套'],['coat','大衣圍巾'],['overall','吊帶褲'],['sailor','水手服'],['plaid','格紋短裙'],['hoodie','帽T'],['yukata','浴衣'],['office','上班套裝'],['pajama','點點睡衣'],['raincoat','黃色雨衣'],['xmas','聖誕毛衣'],['tennis','網球裙']];
@@ -1094,7 +1100,7 @@ details.mini[open] summary:after{content:" ▲"}
       if(m.has((x+1)+','+y)||m.has((x-1)+','+y)||m.has(x+','+(y+1))||m.has(x+','+(y-1))) out+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${K}"/>`;
     }
     for(const [k,c] of m){const [x,y]=k.split(',');out+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${c}"/>`;}
-    if(withGlasses) out+=glassesSvg(res.glasses);
+    if(res.glassList) res.glassList.forEach(g=>{ if(g.on) out+=glassesSvg(g.r,g.dx); }); else if(withGlasses) out+=glassesSvg(res.glasses);
     const w=maxX-minX+1,h=maxY-minY+1;
     svg.setAttribute('viewBox',`${minX} ${minY} ${w} ${h}`); svg.setAttribute('shape-rendering','crispEdges');
     svg.setAttribute('width',w*unit); svg.setAttribute('height',h*unit); svg.innerHTML=out;
@@ -1107,14 +1113,46 @@ details.mini[open] summary:after{content:" ▲"}
   const wxName={hot:'熱',comfy:'舒服',cool:'涼',cold:'冷'};
   if(!state.outfit) state.outfit={zn:'auto',xx:'auto'};
   const outfitOf=who=>{ const o=state.outfit[who]; if(!o||o==='auto'){ return timePhase()==='late'?'pajama':AUTO_OUT[curWx()][who]; } return o; };
-  function person(who,unit,eat,o,fx){ const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  function rawRes(who,eat,o,fx){
     const res=(who==='zn'?drawZn:drawXx)(o||outfitOf(who),eat);
     const top=who==='zn'?0:-4, sp=specialDay();
     if((sp==='bd_zn'&&who==='zn')||(sp==='bd_xx'&&who==='xx')) addHat(res.m,top,'party');
     if(sp==='xmas') addHat(res.m,top,'santa');
     if(fx&&fx.hold){ if(who==='zn'){ res.m.set('11,16',SK); res.m.set('12,17',SK); } else { res.m.set('0,19',SK); res.m.set('-1,20',SK); } }
     if(fx&&fx.blush){ res.m.set('3,7','#FF95A5'); res.m.set('4,7','#FF95A5'); res.m.set('7,7','#FF95A5'); res.m.set('8,7','#FF95A5'); }
-    toSvg(s,res,unit,state.glasses[who]); return s; }
+    return res; }
+  function person(who,unit,eat,o,fx){ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); toSvg(s,rawRes(who,eat,o,fx),unit,state.glasses[who]); return s; }
+  /* 兩個人合成一張圖：牽手、摸頭、抱抱 */
+  function comboSvg(pose,unit){
+    const zn=rawRes('zn',false,null,{blush:true}), xx=rawRes('xx',false), m=new Map(), dz=5;
+    const put=(src,dx,dy)=>{ for(const [k,c] of src.m){ const [x,y]=k.split(',').map(Number); m.set((x+dx)+','+(y+dy),c); } };
+    const set=(x,y,c)=>m.set(x+','+y,c), HP='#FF95A5';
+    const heart=(cx,cy)=>{ [[0,0],[1,0],[3,0],[4,0],[0,1],[1,1],[2,1],[3,1],[4,1],[1,2],[2,2],[3,2],[2,3]].forEach(([a,b])=>set(cx+a,cy+b,HP)); };
+    let dx;
+    if(pose==='hold'){
+      dx=13; put(xx,dx,0); put(zn,0,dz);
+      // 張恩右手、璿璿左手往中間伸，握在一起
+      [[10,22],[11,22],[11,23],[12,23],[12,22],[13,22],[13,21],[14,21],[12,24]].forEach(([x,y])=>set(x,y,SK));
+      heart(9,-9);
+    } else if(pose==='pat'){
+      dx=12; const arm=xx.m.get('1,12')||SK;
+      for(let y=10;y<=21;y++) xx.m.delete('1,'+y);
+      put(zn,0,dz); put(xx,dx,0);
+      [[12,10],[11,9],[10,8],[10,7],[9,6],[9,5]].forEach(([x,y])=>set(x,y,arm));
+      [[8,4],[7,4],[6,4],[8,3],[7,3]].forEach(([x,y])=>set(x,y,SK));
+      heart(1,-3);
+    } else {
+      dx=8; put(xx,dx,0); put(zn,0,dz);
+      const za=zn.m.get('10,12')||SK, xa=xx.m.get('1,12')||SK;
+      for(let x=9;x<=15;x++) set(x,17+dz-1,za);       // 張恩抱住璿璿的腰
+      for(let x=2;x<=9;x++) set(x,13,xa);             // 璿璿摟住張恩的肩
+      set(16,16+dz-1,SK); set(1,13,SK);
+      heart(6,-6);
+    }
+    const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    toSvg(s,{m,glasses:6,glassList:[{dx:0,r:6+dz,on:state.glasses.zn},{dx,r:6,on:state.glasses.xx}]},unit,false);
+    return s;
+  }
   function sceneClass(){ const sp=specialDay(); return 'scene '+(state.rain?'rain':curWx())+' tp-'+timePhase()+(sp?' sp-'+sp:''); }
   function sunSvg(){ if(state.rain) return ''; const c=curWx()==='cold'?'#FFFFFF':'#FFE07A';
     return `<svg class="sun" viewBox="0 0 10 10" shape-rendering="crispEdges"><rect x="2" y="0" width="6" height="10" fill="${K}"/><rect x="0" y="2" width="10" height="6" fill="${K}"/><rect x="1" y="1" width="8" height="8" fill="${K}"/><rect x="2" y="1" width="6" height="8" fill="${c}"/><rect x="1" y="2" width="8" height="6" fill="${c}"/></svg>`; }
@@ -1334,10 +1372,10 @@ details.mini[open] summary:after{content:" ▲"}
   /* 寵物 */
   if(!state.pet) state.pet={type:'cat',name:'咪咪',fed:0};
   Object.assign(PAL,{j:'#EDB664',J:'#C98A3A',h:'#FFE9C4',e:'#3D4A57',i:'#F4A7A0',d:'#3B3F45',t:'#E08E4A',E:'#2A2D33'});
-  Object.assign(PAL,{q:'#9A9AA5',Q:'#D0D0D8',u:'#4A6A8A',C:'#7B4A2A',z:'#4E2C17',l:'#D9A574',h:'#FFF1DC',j:'#EDA85C',J:'#C9823A'});
+  Object.assign(PAL,{a:'#7DBB5A',A:'#4E8A3A',x:'#5B8FC9',f:'#F2B48A',q:'#9A9AA5',Q:'#DCDCE2',u:'#4A6A8A',C:'#7B4A2A',z:'#4E2C17',l:'#D9A574',h:'#FFF1DC',j:'#EDA85C',J:'#C9823A'});
   const PET={
     cat:[".J...J........","JiJ.JiJ.......","jjjhjjj.......","jujhujJjjjj...","jhhphhJjjjjj..",".hhhhhjjjjjjj.",".hhhjjjjjjjjjj",".hhjjjjjjjjjjj","..hhjjjjjjjjJ.","..hh.jjjjjjJJ."],
-    bird:["..yy......","...yy.....","..yyyy....",".yKyyy....","QyooyQ....",".yyyqqq...","..qqqqqq..","..qQQqqqq.","..qqqqqqqq","...qqqq.qq","...p..p..q"],
+    bird:["..QQQ.....",".QQQQQ....","fQKQQQ....","ffQQQaa...",".QQQQaaa..","..QQaaaaa.","..QQaAaaa.","...QaAxaa.","...aaAxaa.","....aaaaa.","....p..aa.",".......aa.","........a."],
     dog:["...zCz..............","..CCCCC........C....",".CKCCCzz.......C....","KllCCzzzz....CC.....",".lllCzzzzCCCCCC.....","...ppzzzCCCCCCC.....","...CCCzzCCCCCCl.....","...CCCCCCCCCCCC.....","...ll.ll...ll.ll...."]
   };
 
@@ -1410,10 +1448,10 @@ details.mini[open] summary:after{content:" ▲"}
       if(t==='bird'&&lastSaid&&Math.random()<.6) txt=`（學說話）${lastSaid}`;
       if(petTaps%3===0) txt='（小聲）按住我 2 秒有驚喜喔…';
       petSay(pet,txt); hopEl(pet,'hop2'); sfx.blip(); return; }
-    const w=e.target.closest('.who'); if(!w) return;
+    const w=e.target.closest('.who'); if(!w||w.classList.contains('both')) return;
     const who=w.classList.contains('zn')?'zn':'xx', say=w.querySelector('.say');
     // 先戳一個、再戳另一個 → 牽手
-    if(lastPoke&&lastPoke.who!==who&&now-lastPoke.t<1800&&sc.querySelectorAll('.who').length===2){ lastPoke=null; taps=[]; holdHands(sc); return; }
+    if(lastPoke&&lastPoke.who!==who&&now-lastPoke.t<1800&&sc.querySelectorAll('.who').length===2){ const first=lastPoke.who; lastPoke=null; taps=[]; doPose(sc,first==='zn'?'hold':'pat'); return; }
     taps=taps.filter(t=>now-t<3500); taps.push(now);
     if(taps.length>=5&&sc.querySelectorAll('.who').length===2){ taps=[]; lastPoke=null; heartCombo(sc); return; }
     lastPoke={who,t:now,el:w};
@@ -1422,17 +1460,25 @@ details.mini[open] summary:after{content:" ▲"}
     hopEl(w,'poke'); sfx.blip();
     if(who==='zn'){ const old=w.querySelector('svg'); const nw=person('zn',4,false,undefined,{blush:true}); w.replaceChild(nw,old); setTimeout(()=>{ if(nw.parentNode) w.replaceChild(person('zn',4,false),nw); },1800); }
   }
-  function holdHands(sc){
-    if(sc._holding) return; sc._holding=true;
-    const duo=sc.querySelector('.duo'), ws=[...sc.querySelectorAll('.who')];
-    ws.forEach(w=>{ const who=w.classList.contains('zn')?'zn':'xx'; const old=w.querySelector('svg'); w.replaceChild(person(who,4,false,undefined,{hold:true,blush:who==='zn'}),old);
-      const s=w.querySelector('.say'); s.textContent=who==='zn'?'牽手手 💕':'嘿嘿～不放開'; s.classList.add('on'); });
-    duo.classList.add('holding'); sfx.chime();
-    const h=document.createElement('div'); h.className='holdheart'; h.innerHTML=pxHeart('#FF95A5','width:22px;position:static;animation:none'); duo.appendChild(h);
-    const pet=sc.querySelector('.pet'); if(pet){ setTimeout(()=>{ petSay(pet,state.pet.type==='cat'?'喵…閃到我了':state.pet.type==='dog'?'汪！我也要牽':'放閃！放閃！',2000); hopEl(pet,'hop2'); },700); }
-    setTimeout(()=>{ duo.classList.remove('holding'); h.remove(); sc._holding=false;
-      ws.forEach(w=>{ const who=w.classList.contains('zn')?'zn':'xx'; const old=w.querySelector('svg'); if(old) w.replaceChild(person(who,4,false),old); w.querySelector('.say').classList.remove('on'); }); },4200);
+  const POSE={
+    hold:{zn:'牽手手 💕',xx:'嘿嘿～不放開',pet:{cat:'喵…閃到我了',dog:'汪！我也要牽',bird:'放閃！放閃！'}},
+    pat:{zn:'哼～我才不是小孩 😳',xx:'乖乖～摸摸頭',pet:{cat:'也摸摸我嘛',dog:'汪！我也要！',bird:'乖乖！乖乖！'}},
+    hug:{zn:'抱抱 🫶',xx:'抱緊處理！',pet:{cat:'喵嗚（擠進來）',dog:'汪汪（跳起來）',bird:'啾！抱抱！'}}
+  };
+  function doPose(sc,pose){
+    if(sc._posing) return; sc._posing=true;
+    const duo=sc.querySelector('.duo'), kids=[...duo.children];
+    kids.forEach(k=>k.style.display='none');
+    const box=document.createElement('div'); box.className='who both';
+    box.innerHTML=`<div class="say l on">${POSE[pose].zn}</div><div class="say r on">${POSE[pose].xx}</div>`;
+    box.appendChild(comboSvg(pose,4)); box.insertAdjacentHTML('beforeend','<span class="tag">張恩 ♡ 璿璿</span>');
+    duo.appendChild(box); hopEl(box,'poke'); sfx.chime();
+    const pet=sc.querySelector('.pet'), oldL=pet&&pet.style.left;
+    if(pet&&!pet.classList.contains('perch')){ pet.style.transition='left .5s steps(5)'; pet.style.marginLeft='0'; pet.style.left='12%'; }
+    if(pet) setTimeout(()=>{ petSay(pet,POSE[pose].pet[state.pet.type],2000); hopEl(pet,'hop2'); },800);
+    setTimeout(()=>{ box.remove(); kids.forEach(k=>k.style.display=''); sc._posing=false; if(pet&&!pet.classList.contains('perch')){ pet.style.left=oldL||''; pet.style.marginLeft=''; } },4200);
   }
+  function holdHands(sc){ doPose(sc,'hold'); }
   function petCuddle(sc,pet,w){
     const who=w.classList.contains('zn')?'zn':'xx';
     const say=w.querySelector('.say'); say.textContent=state.pet.type==='bird'?'來，站我手上～':'乖～摸摸頭'; say.classList.add('on');
@@ -1515,20 +1561,23 @@ details.mini[open] summary:after{content:" ▲"}
   /* 長按寵物 2 秒 → 時光機 */
   (function(){
     let timer=null, fired=false;
-    const start=e=>{ const pet=e.target.closest('#preview .pet'); if(!pet) return; fired=false;
+    const start=e=>{ const w=e.target.closest('#preview .who'); if(w&&!w.classList.contains('both')&&preview.querySelectorAll('.who').length===2){ fired=false;
+        timer=setTimeout(()=>{ fired=true; lastPoke=null; taps=[]; doPose(preview,'hug'); },1200); return; }
+      const pet=e.target.closest('#preview .pet'); if(!pet) return; fired=false;
       timer=setTimeout(()=>{ fired=true; const s=pet.querySelector('.pet-say');
-        s.textContent=state.pet.type==='cat'?'喵？要帶你去未來嗎':'汪？要帶你去未來嗎'; s.classList.add('on');
+        s.textContent={cat:'喵？要帶你去未來嗎',dog:'汪？要帶你去未來嗎',bird:'啾？要帶你去未來嗎'}[state.pet.type]; s.classList.add('on');
         setTimeout(()=>{ s.classList.remove('on'); openTimeMachine(); },900); },2000); };
     const stop=()=>{ clearTimeout(timer); timer=null; };
     const pv=document.getElementById('preview');
     pv.addEventListener('pointerdown',start); ['pointerup','pointerleave','pointercancel'].forEach(ev=>pv.addEventListener(ev,stop));
     pv.addEventListener('contextmenu',e=>{ if(e.target.closest('.pet')) e.preventDefault(); });
-    pv.addEventListener('click',e=>{ if(fired&&e.target.closest('.pet')){ e.stopImmediatePropagation(); fired=false; } },true);
+    pv.addEventListener('click',e=>{ if(fired&&e.target.closest('.pet,.who')){ e.stopImmediatePropagation(); fired=false; } },true);
+    pv.addEventListener('contextmenu',e=>{ if(e.target.closest('.who')) e.preventDefault(); });
   })();
   /* 寵物設定列 */
   function renderPetRow(){
     const lv=petLv(), nx=petNext(), f=state.pet.fed;
-    document.getElementById('petRow').innerHTML=`<button class="tg ${state.pet.type==='cat'?'on':''}" data-pet="cat">🐱 金漸層</button><button class="tg ${state.pet.type==='dog'?'on':''}" data-pet="dog">🐶 巧克力臘腸</button><button class="tg ${state.pet.type==='bird'?'on':''}" data-pet="bird">🦜 玄鳳鸚鵡</button>
+    document.getElementById('petRow').innerHTML=`<button class="tg ${state.pet.type==='cat'?'on':''}" data-pet="cat">🐱 金漸層</button><button class="tg ${state.pet.type==='dog'?'on':''}" data-pet="dog">🐶 巧克力臘腸</button><button class="tg ${state.pet.type==='bird'?'on':''}" data-pet="bird">🦜 和尚鸚鵡</button>
       <input class="pet-name" id="petName" maxlength="6" value="${esc(state.pet.name)}">
       <span class="pet-lv">Lv.${lv}・吃了 ${f} 餐${nx===Infinity?'・已經長最大了！':`・再 ${nx-f} 餐長大`}</span>`;
   }
