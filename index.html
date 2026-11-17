@@ -1033,8 +1033,8 @@ details.mini[open] summary:after{content:" ▲"}
     return `<g transform="translate(${dx||0} 0)"><g fill="rgba(220,239,250,.35)" stroke="${K}" stroke-width=".32"><rect x="3.15" y="${r-.55}" width="2.7" height="2.05" rx=".35"/><rect x="6.15" y="${r-.55}" width="2.7" height="2.05" rx=".35"/></g><line x1="5.85" y1="${r+.15}" x2="6.15" y2="${r+.15}" stroke="${K}" stroke-width=".32"/></g>`;
   }
   // 張恩 154cm：小貓短髮（黑色齊瀏海鮑伯頭，髮尾微翹）＋日系穿搭
-  const ZN_OUT=[['dress','粉色洋裝'],['stripe','條紋長裙'],['cardigan','針織外套'],['coat','大衣圍巾'],['overall','吊帶褲'],['sailor','水手服'],['plaid','格紋短裙'],['hoodie','帽T'],['yukata','浴衣'],['office','上班套裝'],['pajama','點點睡衣'],['raincoat','黃色雨衣'],['xmas','聖誕毛衣'],['tennis','網球裙']];
-  const XX_OUT=[['tee','白T短褲'],['black','黑T牛仔褲'],['flannel','格紋襯衫'],['varsity','棒球外套'],['jersey','籃球球衣'],['denim','丹寧外套'],['hoodie','帽T'],['suit','西裝'],['jinbei','甚平'],['office','上班襯衫'],['pajama','條紋睡衣'],['raincoat','黃色雨衣'],['xmas','聖誕毛衣'],['aloha','夏威夷衫']];
+  const ZN_OUT=[['dress','粉色洋裝'],['stripe','條紋長裙'],['cardigan','針織外套'],['coat','大衣圍巾'],['overall','吊帶褲'],['sailor','水手服'],['plaid','格紋短裙'],['hoodie','帽T'],['yukata','浴衣'],['office','上班套裝'],['pajama','點點睡衣'],['raincoat','黃色雨衣'],['xmas','聖誕毛衣'],['tennis','網球裙'],['puffer','白羽絨衣'],['jeans','白T牛仔褲'],['knit','高領毛衣'],['hanbok','韓服'],['sport','運動服'],['flower','碎花洋裝']];
+  const XX_OUT=[['tee','白T短褲'],['black','黑T牛仔褲'],['flannel','格紋襯衫'],['varsity','棒球外套'],['jersey','籃球球衣'],['denim','丹寧外套'],['hoodie','帽T'],['suit','西裝'],['jinbei','甚平'],['office','上班襯衫'],['pajama','條紋睡衣'],['raincoat','黃色雨衣'],['xmas','聖誕毛衣'],['aloha','夏威夷衫'],['puffer','羽絨外套'],['polo','Polo衫'],['knit','麻花毛衣'],['track','運動服'],['trench','風衣'],['leather','皮夾克']];
   const AUTO_OUT={hot:{zn:'dress',xx:'tee'},comfy:{zn:'stripe',xx:'black'},cool:{zn:'cardigan',xx:'flannel'},cold:{zn:'coat',xx:'varsity'}};
   function drawZn(o,eat){
     const {m,R}=px(); const H='#2B211E', HL='#4A3A33', N='#425B9A';
@@ -1068,6 +1068,18 @@ details.mini[open] summary:after{content:" ▲"}
     else if(o==='xmas'){ R(2,11,8,7,'#D9534F'); for(let x=2;x<10;x++) R(x,14,1,1,x%2?W:'#D9534F'); R(5,15,2,1,'#6F8A52'); R(4,16,4,1,'#6F8A52'); R(5,12,2,1,'#FFE07A'); arms('#D9534F',true); R(1,16,1,1,W); R(10,16,1,1,W);
       R(2,18,8,5,'#4E6E9E'); R(2,23,3,4,'#4E6E9E'); R(7,23,3,4,'#4E6E9E'); shoes('#9C6B48'); }
     else if(o==='tennis'){ R(2,11,8,7,W); R(4,11,4,1,'#91AE6E'); R(5,12,2,1,'#91AE6E'); arms(W,false); R(2,18,8,3,W); R(1,21,10,1,W); R(3,18,1,4,'#D8D4D0'); R(6,18,1,4,'#D8D4D0'); legs(22,SK); R(3,26,2,2,W); R(7,26,2,2,W); shoes(W); R(10,13,1,1,'#91AE6E'); }
+    else if(o==='puffer'){ const P='#F4F1EC', Q='#D8D4D0'; R(2,11,8,12,P); R(4,10,4,1,P); [13,16,19].forEach(y=>R(2,y,8,1,Q)); R(6,11,1,12,Q); arms(P,true); R(1,14,1,1,Q); R(10,14,1,1,Q); R(1,22,10,1,P); legs(23,'#55504E'); shoes(K); }
+    else if(o==='jeans'){ const D='#6E9CC8'; R(2,11,8,7,W); R(4,13,1,1,'#FF95A5'); R(6,13,1,1,'#FF95A5'); R(4,14,3,1,'#FF95A5'); R(5,15,1,1,'#FF95A5'); arms(W,false);
+      R(2,18,8,4,D); R(5,18,2,1,'#9C6B48'); R(2,22,3,6,D); R(7,22,3,6,D); R(3,25,1,1,'#BFE3F7'); R(8,23,1,1,'#BFE3F7'); shoes(W); }
+    else if(o==='knit'){ const C='#F2E6D0'; R(2,11,8,7,C); R(4,10,4,1,C); for(let x=2;x<10;x+=2) R(x,17,1,1,'#E0D2B6'); R(4,12,1,4,'#E0D2B6'); R(7,12,1,4,'#E0D2B6'); arms(C,true);
+      R(2,18,8,8,'#2F4275'); R(1,25,10,1,'#2F4275'); legs(26,'#55504E'); shoes('#9C6B48'); }
+    else if(o==='hanbok'){ const Pk='#FFC2CC', Bl='#BFE3F7'; R(2,11,8,4,Pk); R(4,11,1,2,W); R(7,11,1,2,W); R(5,13,1,4,'#D9534F'); R(6,13,1,2,'#D9534F'); arms(Pk,true);
+      R(1,13,1,1,'#FFE07A'); R(1,15,1,1,'#91AE6E'); R(10,13,1,1,'#FFE07A'); R(10,15,1,1,'#91AE6E');
+      R(2,15,8,4,Bl); R(5,15,1,2,'#D9534F'); R(1,19,10,4,Bl); R(0,23,12,4,Bl); R(3,27,2,1,Pk); R(7,27,2,1,Pk); }
+    else if(o==='sport'){ const B='#4E6E9E'; R(2,11,8,7,B); R(5,11,1,7,W); R(3,13,1,1,'#FFE07A'); arms(B,true); R(1,16,1,1,W); R(10,16,1,1,W);
+      R(2,18,8,4,B); R(2,22,3,6,B); R(7,22,3,6,B); R(2,18,1,10,W); R(9,18,1,10,W); shoes(W); }
+    else if(o==='flower'){ const F='#FFF1B8'; R(2,11,8,12,F); R(1,22,10,3,F); [[3,13],[7,14],[5,17],[3,20],[8,19],[6,22],[2,23],[9,23],[4,24]].forEach(([x,y])=>R(x,y,1,1,'#FF95A5')); [[7,17],[4,22],[8,24]].forEach(([x,y])=>R(x,y,1,1,'#91AE6E'));
+      arms(F,false); legs(25,SK); shoes(W); }
     else { const L='#C6B5EA'; R(2,11,8,8,L); R(3,10,6,1,L); R(5,10,2,1,SK); R(4,15,4,2,'#A996D6'); R(4,12,1,2,W); R(7,12,1,2,W); arms(L,true);
       const g='#9A9AA5'; R(2,19,8,4,g); R(2,23,3,4,g); R(7,23,3,4,g); shoes(W); }
     if(eat){ R(11,14,1,3,'#C9A06A'); R(12,13,1,3,'#C9A06A'); }
@@ -1102,6 +1114,13 @@ details.mini[open] summary:after{content:" ▲"}
     else if(o==='raincoat'){ const Yc='#FFE07A'; R(2,10,8,16,Yc); R(2,10,8,1,'#E8B83A'); R(6,12,1,1,K); R(6,15,1,1,K); R(6,18,1,1,K); R(6,21,1,1,K); arms(Yc,true); R(2,26,3,3,'#4E6E9E'); R(7,26,3,3,'#4E6E9E'); R(2,29,3,3,'#425B9A'); R(7,29,3,3,'#425B9A'); R(1,32,4,2,'#425B9A'); R(7,32,4,2,'#425B9A'); }
     else if(o==='xmas'){ const Gr='#6F8A52'; top(Gr); for(let x=2;x<10;x++){ R(x,12,1,1,x%2?W:'#D9534F'); R(x,18,1,1,x%2?'#D9534F':W);} R(5,14,2,1,W); R(4,15,4,1,W); R(5,16,2,1,W); R(5,13,2,1,'#FFE07A'); arms(Gr,true); R(1,19,1,1,'#D9534F'); R(10,19,1,1,'#D9534F'); pants('#4E6E9E',false); shoes(W,'#D9534F'); }
     else if(o==='aloha'){ const A='#FF95A5'; top(A); [[3,11],[7,12],[4,14],[8,15],[3,17],[6,18],[8,19],[5,13]].forEach(([x,y])=>{R(x,y,1,1,'#FFE07A');}); R(4,10,1,2,W); R(7,10,1,2,W); R(5,10,2,1,SK); arms(A,false); pants('#E8D3A8',true); R(2,32,4,1,'#76C0EC'); R(7,32,4,1,'#76C0EC'); R(3,31,1,1,'#76C0EC'); R(8,31,1,1,'#76C0EC'); }
+    else if(o==='puffer'){ const P='#4A4A55', Q='#5E5E6A'; top(P); R(4,9,4,1,P); [13,16,19].forEach(y=>R(2,y,8,1,Q)); R(6,10,1,11,Q); arms(P,true); R(1,14,1,1,Q); R(10,14,1,1,Q); pants('#6E9CC8',false); shoes(W,'#D9534F'); }
+    else if(o==='polo'){ const G='#6F8A52'; top(G); R(3,10,6,1,W); R(5,11,1,2,W); R(8,13,1,1,'#FFE07A'); arms(G,false); pants('#C9B48A',false); shoes('#9C6B48'); }
+    else if(o==='knit'){ const C='#E8D3A8'; top(C); for(let x=3;x<10;x+=2) R(x,10,1,10,'#D6BE8C'); R(2,20,8,1,'#C9B48A'); R(4,10,4,1,'#C9B48A'); arms(C,true); pants('#6E9CC8',false); shoes(W); }
+    else if(o==='track'){ top(N); R(5,10,1,11,W); R(4,10,1,1,W); R(6,10,1,1,W); arms(N,true); R(1,13,1,1,W); R(10,13,1,1,W); pants(N,false); R(2,21,1,11,W); R(9,21,1,11,W); shoes(W,'#D9534F'); }
+    else if(o==='trench'){ const T='#C9A06A'; R(2,10,8,17,T); R(5,10,2,2,W); R(4,10,1,2,'#A88452'); R(7,10,1,2,'#A88452'); R(2,17,8,1,'#8A6A3E'); [[4,13],[7,13],[4,15],[7,15]].forEach(([x,y])=>R(x,y,1,1,K)); R(6,18,1,9,'#A88452'); arms(T,true);
+      R(2,27,3,5,'#55504E'); R(7,27,3,5,'#55504E'); shoes(K); }
+    else if(o==='leather'){ const L='#5A4038'; top(L); R(5,10,2,11,W); R(4,10,1,3,'#3A2A24'); R(7,10,1,3,'#3A2A24'); R(3,16,1,1,'#B8B8C2'); R(8,16,1,1,'#B8B8C2'); arms(L,true); pants('#4E6E9E',false); shoes(K); }
     else { const S='#2F4275'; top(S); R(5,10,2,5,W); R(5,11,2,4,'#D9534F'); R(4,10,1,3,'#26365F'); R(7,10,1,3,'#26365F'); R(3,15,1,1,W); arms(S,true); R(1,19,1,1,W); R(10,19,1,1,W); pants(S,false); shoes(K); }
     if(eat){ R(0,17,1,3,'#C9A06A'); R(-1,16,1,3,'#C9A06A'); }
     return {m,glasses:6};
