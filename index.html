@@ -469,6 +469,16 @@ details.mini[open] summary:after{content:" ▲"}
 @keyframes shoot{from{translate:0 0;opacity:1}to{translate:-180px 70px;opacity:0}}
 
 .who.both{position:relative}
+.acts{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px 2px;justify-content:center}
+.acts .tg{font-size:13px}
+.scene.dancing .duo .who svg{animation:dance .6s steps(2) infinite;transform-origin:50% 100%}
+.scene.dancing .duo .who.xx svg{animation-delay:-.3s}
+.scene.dancing .pet svg{animation:dance .5s steps(2) infinite}
+@keyframes dance{0%{transform:translateY(0) scaleX(1)}50%{transform:translateY(-8px) scaleX(-1)}}
+.note{position:absolute;bottom:45%;z-index:5;font-size:18px;color:var(--ink);font-style:normal;pointer-events:none;animation:noteUp 1.6s steps(8) infinite}
+@keyframes noteUp{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-70px);opacity:0}}
+.who.both .say{white-space:nowrap}
+.dish{cursor:pointer}
 .who.both .say.l{right:auto;left:-10px}
 .who.both .say.r{left:auto;right:-10px;bottom:calc(100% + 34px)}
 .who.both .say.l:after{left:18px;right:auto}.who.both .say.r:after{right:18px;left:auto}
@@ -541,7 +551,7 @@ details.mini[open] summary:after{content:" ▲"}
 
   <section class="card" id="todayCard">
     <div class="win pink tog-bar" id="todayBar"><i></i><i></i><i></i><span>今天的狀態.exe</span><button class="win-tog" id="todayTog" aria-expanded="true">收起 ▲</button></div>
-    <div class="today-in"><div class="lcd" id="lcd"></div><div id="preview"></div>
+    <div class="today-in"><div class="lcd" id="lcd"></div><div id="preview"></div><div class="acts" id="acts"><button class="tg" data-act="hi5">✋ 擊掌</button><button class="tg" data-act="dance">💃 跳舞</button><button class="tg" data-act="feed">🥄 餵食</button><button class="tg" data-act="heart">💕 比心</button></div>
     <div class="body">
       <div class="st-row"><span class="lab">跟誰吃</span><span class="st-btns" id="withBtns"></span></div>
       <div class="st-row"><span class="lab">餓度</span><span class="st-btns" id="moodBtns"></span></div>
@@ -1119,9 +1129,10 @@ details.mini[open] summary:after{content:" ▲"}
     if((sp==='bd_zn'&&who==='zn')||(sp==='bd_xx'&&who==='xx')) addHat(res.m,top,'party');
     if(sp==='xmas') addHat(res.m,top,'santa');
     if(fx&&fx.hold){ if(who==='zn'){ res.m.set('11,16',SK); res.m.set('12,17',SK); } else { res.m.set('0,19',SK); res.m.set('-1,20',SK); } }
+    if(fx&&fx.back){ const HB=who==='zn'?'#2B211E':'#2A2420', y1=who==='zn'?9:8; for(let y=4;y<=y1;y++) for(let x=3;x<=8;x++) if(res.m.has(x+','+y)) res.m.set(x+','+y,HB); }
     if(fx&&fx.blush){ res.m.set('3,7','#FF95A5'); res.m.set('4,7','#FF95A5'); res.m.set('7,7','#FF95A5'); res.m.set('8,7','#FF95A5'); }
     return res; }
-  function person(who,unit,eat,o,fx){ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); toSvg(s,rawRes(who,eat,o,fx),unit,state.glasses[who]); return s; }
+  function person(who,unit,eat,o,fx){ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); toSvg(s,rawRes(who,eat,o,fx),unit,fx&&fx.back?false:state.glasses[who]); return s; }
   /* 兩個人合成一張圖：牽手、摸頭、抱抱 */
   function comboSvg(pose,unit){
     const zn=rawRes('zn',false,null,{blush:true}), xx=rawRes('xx',false), m=new Map(), dz=5;
@@ -1141,6 +1152,31 @@ details.mini[open] summary:after{content:" ▲"}
       [[12,10],[11,9],[10,8],[10,7],[9,6],[9,5]].forEach(([x,y])=>set(x,y,arm));
       [[8,4],[7,4],[6,4],[8,3],[7,3]].forEach(([x,y])=>set(x,y,SK));
       heart(1,-3);
+    } else if(pose==='hi5'){
+      dx=17; const za=zn.m.get('10,12')||SK, xa=xx.m.get('1,12')||SK, Y='#FFE07A';
+      for(let y=11;y<=17;y++) zn.m.delete('10,'+y);
+      for(let y=10;y<=21;y++) xx.m.delete('1,'+y);
+      put(zn,0,dz); put(xx,dx,0);
+      [[11,15],[11,14],[12,13],[12,12],[13,11],[13,10],[14,9]].forEach(([x,y])=>set(x,y,za));   // 張恩舉右手
+      [[18,10],[17,9],[16,8]].forEach(([x,y])=>set(x,y,xa));                                      // 璿璿舉左手
+      [[14,8],[14,7],[14,6],[15,8],[15,7],[15,6]].forEach(([x,y])=>set(x,y,SK));                  // 兩隻手掌拍在一起
+      [[14,3],[15,3],[12,4],[17,4],[11,2],[18,2],[14,0],[15,0]].forEach(([x,y])=>set(x,y,Y));      // 啪！的閃光
+    } else if(pose==='feedxx'){
+      dx=14; const xa=xx.m.get('1,12')||SK;
+      for(let y=10;y<=21;y++) xx.m.delete('1,'+y);
+      put(zn,0,dz); put(xx,dx,0);
+      [[15,10],[14,11],[13,12]].forEach(([x,y])=>set(x,y,xa));
+      set(12,12,SK); set(12,13,SK); [9,10,11].forEach(x=>set(x,13,'#9A9AA5')); set(8,13,'#DCDCE2'); set(7,13,'#DCDCE2'); set(7,12,'#FFE07A'); set(8,12,'#FFE07A');
+      set(5,13,'#B83A3A'); set(6,13,'#B83A3A');   // 張恩張嘴「啊～」
+      heart(0,-2);
+    } else if(pose==='feedzn'){
+      dx=15; const za=zn.m.get('10,12')||SK;
+      for(let y=11;y<=17;y++) zn.m.delete('10,'+y);
+      put(zn,0,dz); put(xx,dx,0);
+      [[11,15],[12,14],[12,13],[13,12],[14,11]].forEach(([x,y])=>set(x,y,za));
+      set(15,10,SK); set(15,11,SK); set(16,9,'#9A9AA5'); set(17,9,'#9A9AA5'); set(18,8,'#DCDCE2'); set(19,8,'#DCDCE2'); set(18,7,'#FFE07A'); set(19,7,'#FFE07A');
+      set(20,8,'#B83A3A'); set(21,8,'#B83A3A');   // 璿璿張嘴「啊～」
+      heart(23,-10);
     } else {
       dx=8; put(xx,dx,0); put(zn,0,dz);
       const za=zn.m.get('10,12')||SK, xa=xx.m.get('1,12')||SK;
@@ -1258,7 +1294,7 @@ details.mini[open] summary:after{content:" ▲"}
   }
   // scene: who = ['zn','xx'] or one of them
   function buildScene(el,opts){
-    el.className=sceneClass()+(opts.cls?' '+opts.cls:'');
+    el.className=sceneClass()+(opts.cls?' '+opts.cls:''); el._sulk=null; clearTimeout(el._sulkT);
     el.innerHTML=wxFx(state.rain?'rain':curWx())+'<div class="ground"></div>'+(opts.dish?`<div class="table"><div class="dish"><span class="steam">～～</span>${opts.dish}</div></div>`:'')+'<div class="duo"></div>';
     const duo=el.querySelector('.duo');
     opts.who.forEach((w,i)=>{
@@ -1375,14 +1411,25 @@ details.mini[open] summary:after{content:" ▲"}
   Object.assign(PAL,{a:'#7DBB5A',A:'#4E8A3A',x:'#5B8FC9',f:'#F2B48A',q:'#9A9AA5',Q:'#DCDCE2',u:'#4A6A8A',C:'#7B4A2A',z:'#4E2C17',l:'#D9A574',h:'#FFF1DC',j:'#EDA85C',J:'#C9823A'});
   const PET={
     cat:[".J...J........","JiJ.JiJ.......","jjjhjjj.......","jujhujJjjjj...","jhhphhJjjjjj..",".hhhhhjjjjjjj.",".hhhjjjjjjjjjj",".hhjjjjjjjjjjj","..hhjjjjjjjjJ.","..hh.jjjjjjJJ."],
-    bird:["..QQQ.....",".QQQQQ....","fQKQQQ....","ffQQQaa...",".QQQQaaa..","..QQaaaaa.","..QQaAaaa.","...QaAxaa.","...aaAxaa.","....aaaaa.","....p..aa.",".......aa.","........a."],
+    bird:["...KKKK......","..KAAAAK.....",".KFFAAAAK....","KZFFKWWAK....","KZZFWWWWXK...",".KKWWWWXXXK..","...KWWXXXXUK.","...KWWXXXXUUK","...KGGXXXUUUK","....KGGGUUUK.",".....KKKKKK..","......K..K..."],
     dog:["...zCz..............","..CCCCC........C....",".CKCCCzz.......C....","KllCCzzzz....CC.....",".lllCzzzzCCCCCC.....","...ppzzzCCCCCCC.....","...CCCzzCCCCCCl.....","...CCCCCCCCCCCC.....","...ll.ll...ll.ll...."]
   };
 
 
   const petLv=()=>{ const f=state.pet.fed; return f<5?1:f<15?2:f<30?3:4; };
   const petNext=()=>[5,15,30,Infinity][petLv()-1];
+  /* 鸚鵡：直接用北海道網頁聊天室貼圖的那隻（原圖已經有描邊，不再自動加框） */
+  const BIRD_PAL={K:'#3E3A39',W:'#FFFFFF',A:'#A9C7CC',F:'#F6C77A',Z:'#E6D27C',X:'#5FB3A8',U:'#3F6FD0',G:'#C9C4CF',r:'#E8574F',y:'#FFE07A'};
+  function birdSvg(unit){
+    const rows=PET.bird.map(r=>r.split('')), wx=state.rain?'rain':curWx();
+    if(wx==='cold'){ rows[5][3]='r'; rows[5][4]='r'; rows[5][5]='r'; rows[6][4]='r'; }
+    if(wx==='rain'){ for(let y=1;y<3;y++) for(let x=0;x<13;x++) if(rows[y][x]==='A') rows[y][x]='y'; }
+    let o=''; rows.forEach((r,y)=>r.forEach((c,x)=>{ if(BIRD_PAL[c]) o+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${BIRD_PAL[c]}"/>`; }));
+    const w=rows[0].length, h=rows.length;
+    return `<svg class="prop" width="${w*unit}" height="${h*unit}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges">${o}</svg>`;
+  }
   function petSvg(unit){
+    if(state.pet.type==='bird') return birdSvg(unit);
     const rows=PET[state.pet.type].map(r=>r.split(''));
     const wx=state.rain?'rain':curWx();
     const cat=state.pet.type==='cat';
@@ -1392,7 +1439,7 @@ details.mini[open] summary:after{content:" ▲"}
     PAL.o=PAL.o; return sprite('__pet',unit,'','');
   }
   function petHTML(eat){
-    const u=(state.pet.type==='bird'?[0,3,3,3,4]:[0,2,2,3,3])[petLv()];
+    const u=(state.pet.type==='bird'?[0,2,3,3,4]:[0,2,2,3,3])[petLv()];
     return `<div class="pet ${eat?'eating':''}" title="${esc(state.pet.name)}"><div class="say pet-say"></div>${petSvg(u)}${eat?'<span class="petbowl"></span>':''}<span class="tag">${esc(state.pet.name)}</span></div>`;
   }
   /* 時間＆特別日子的天空效果 */
@@ -1432,7 +1479,7 @@ details.mini[open] summary:after{content:" ▲"}
   SPR.lantern=["....K....","....K....","..yyyyy..",".rrrrrrr.","rrryyyrrr","rrrrrrrrr","rrryyyrrr",".rrrrrrr.","..yyyyy..","...y.y...","...y.y..."];
   /* 戳小人 */
   const POKE={zn:['討厭啦～ 😳','幹嘛戳我啦','嘿嘿 ♡','肚子餓了啦！'],xx:['嗯？怎麼了','被戳到了 😆','我在這裡～','要吃什麼？我請！']};
-  let taps=[], petTaps=0, lastPoke=null, lastSaid='';
+  let taps=[], petTaps=0, lastPoke=null, lastSaid='', samePokes=0, lastFood=null;
   const PET_TALK={cat:['喵～','喵嗚？','呼嚕呼嚕…'],dog:['汪！','汪汪～','嗚～'],bird:['你好！','啾啾～','吃飯飯！','張恩～','璿璿～']};
   function petSay(pet,txt,ms){ if(pet.classList.contains('perch')){ const sc=pet.closest('.scene'); const h=sc&&(sc.querySelector('.who.xx .say')||sc.querySelector('.who .say')); if(h) h.classList.remove('on'); }
     const s=pet.querySelector('.pet-say'); s.textContent=txt; s.classList.add('on'); clearTimeout(pet._t); pet._t=setTimeout(()=>s.classList.remove('on'),ms||1700); }
@@ -1448,12 +1495,16 @@ details.mini[open] summary:after{content:" ▲"}
       if(t==='bird'&&lastSaid&&Math.random()<.6) txt=`（學說話）${lastSaid}`;
       if(petTaps%3===0) txt='（小聲）按住我 2 秒有驚喜喔…';
       petSay(pet,txt); hopEl(pet,'hop2'); sfx.blip(); return; }
+    if(e.target.closest('.dish')&&sc.querySelectorAll('.duo .who').length===2&&!sc._posing){ feedTime(sc); return; }
     const w=e.target.closest('.who'); if(!w||w.classList.contains('both')) return;
     const who=w.classList.contains('zn')?'zn':'xx', say=w.querySelector('.say');
+    // 鬧脾氣中：戳生氣的人 → 還在氣；戳另一個人 → 去哄他
+    if(sc._sulk){ if(who===sc._sulk){ say.textContent=rand(['哼！😤','不要理我！','還戳！','（假裝沒聽到）']); say.classList.add('on'); hopEl(w,'poke'); sfx.huff(); } else comfort(sc,who); return; }
     // 先戳一個、再戳另一個 → 牽手
     if(lastPoke&&lastPoke.who!==who&&now-lastPoke.t<1800&&sc.querySelectorAll('.who').length===2){ const first=lastPoke.who; lastPoke=null; taps=[]; doPose(sc,first==='zn'?'hold':'pat'); return; }
-    taps=taps.filter(t=>now-t<3500); taps.push(now);
-    if(taps.length>=5&&sc.querySelectorAll('.who').length===2){ taps=[]; lastPoke=null; heartCombo(sc); return; }
+    // 一直戳同一個人 5 次 → 鬧脾氣
+    samePokes=(lastPoke&&lastPoke.who===who&&now-lastPoke.t<1600)?samePokes+1:1;
+    if(samePokes>=5&&sc.querySelectorAll('.duo .who').length===2){ samePokes=0; lastPoke=null; sulk(sc,who); return; }
     lastPoke={who,t:now,el:w};
     const line=rand(POKE[who]); lastSaid=line.replace(/[😳😆♡]/g,'').trim();
     say.textContent=line; say.classList.add('on');
@@ -1463,20 +1514,26 @@ details.mini[open] summary:after{content:" ▲"}
   const POSE={
     hold:{zn:'牽手手 💕',xx:'嘿嘿～不放開',pet:{cat:'喵…閃到我了',dog:'汪！我也要牽',bird:'放閃！放閃！'}},
     pat:{zn:'哼～我才不是小孩 😳',xx:'乖乖～摸摸頭',pet:{cat:'也摸摸我嘛',dog:'汪！我也要！',bird:'乖乖！乖乖！'}},
-    hug:{zn:'抱抱 🫶',xx:'抱緊處理！',pet:{cat:'喵嗚（擠進來）',dog:'汪汪（跳起來）',bird:'啾！抱抱！'}}
+    hug:{zn:'抱抱 🫶',xx:'抱緊處理！',pet:{cat:'喵嗚（擠進來）',dog:'汪汪（跳起來）',bird:'啾！抱抱！'}},
+    hi5:{zn:'耶！擊掌 ✋',xx:'Give me five！',pet:{cat:'喵！（也舉手手）',dog:'汪！（舉爪爪）',bird:'耶！耶！擊掌！'}},
+    feedxx:{zn:'啊～ 😋',xx:'來，啊～',pet:{cat:'喵…我也要吃',dog:'汪！（流口水）',bird:'我也要吃！'}},
+    feedzn:{zn:'來，啊～',xx:'啊～ 好吃！',pet:{cat:'喵…我也要吃',dog:'汪！（流口水）',bird:'我也要吃！'}}
   };
-  function doPose(sc,pose){
+  function doPose(sc,pose,lines){
     if(sc._posing) return; sc._posing=true;
+    if(sc._sulk) endSulk(sc);
+    const L=Object.assign({},POSE[pose],lines||{});
     const duo=sc.querySelector('.duo'), kids=[...duo.children];
     kids.forEach(k=>k.style.display='none');
     const box=document.createElement('div'); box.className='who both';
-    box.innerHTML=`<div class="say l on">${POSE[pose].zn}</div><div class="say r on">${POSE[pose].xx}</div>`;
+    box.innerHTML=`<div class="say l on">${esc(L.zn)}</div><div class="say r on">${esc(L.xx)}</div>`;
     box.appendChild(comboSvg(pose,4)); box.insertAdjacentHTML('beforeend','<span class="tag">張恩 ♡ 璿璿</span>');
-    duo.appendChild(box); hopEl(box,'poke'); sfx.chime();
+    duo.appendChild(box); hopEl(box,'poke'); if(pose==='hi5') sfx.clap(); else if(pose.startsWith('feed')) sfx.plop(); else sfx.chime();
     const pet=sc.querySelector('.pet'), oldL=pet&&pet.style.left;
     if(pet&&!pet.classList.contains('perch')){ pet.style.transition='left .5s steps(5)'; pet.style.marginLeft='0'; pet.style.left='12%'; }
-    if(pet) setTimeout(()=>{ petSay(pet,POSE[pose].pet[state.pet.type],2000); hopEl(pet,'hop2'); },800);
-    setTimeout(()=>{ box.remove(); kids.forEach(k=>k.style.display=''); sc._posing=false; if(pet&&!pet.classList.contains('perch')){ pet.style.left=oldL||''; pet.style.marginLeft=''; } },4200);
+    else if(pet){ pet.style.transition='left .5s steps(5)'; pet.style.left=Math.min(parseFloat(oldL)+70,sc.clientWidth-120)+'px'; }   // 鸚鵡先飛開，不要擋到兩個人
+    if(pet) setTimeout(()=>{ petSay(pet,L.pet[state.pet.type],2000); hopEl(pet,'hop2'); },800);
+    setTimeout(()=>{ box.remove(); kids.forEach(k=>k.style.display=''); sc._posing=false; if(pet&&!pet.classList.contains('perch')){ pet.style.left=oldL||''; pet.style.marginLeft=''; } else if(pet) pet.style.left=oldL; },4200);
   }
   function holdHands(sc){ doPose(sc,'hold'); }
   function petCuddle(sc,pet,w){
@@ -1500,6 +1557,47 @@ details.mini[open] summary:after{content:" ▲"}
     for(let i=0;i<10;i++){ const h=document.createElement('div'); h.innerHTML=pxHeart(i%2?'#FF95A5':'#E06B80',`left:${30+Math.random()*40}%;width:${12+Math.random()*10}px;animation-duration:${2+Math.random()*1.5}s`); sc.querySelector('.fx').appendChild(h.firstChild); }
     sfx.fanfare(); setTimeout(()=>box.remove(),2600);
   }
+  /* 鬧脾氣 → 另一個人去哄 */
+  function sulkView(w,who,on){ const old=w.querySelector('svg'); if(old) w.replaceChild(person(who,4,false,undefined,on?{back:true}:undefined),old); w.classList.toggle('sulk',on); }
+  function endSulk(sc){ const who=sc._sulk; sc._sulk=null; clearTimeout(sc._sulkT); const w=who&&sc.querySelector('.duo .who.'+who); if(w) sulkView(w,who,false); return who; }
+  function sulk(sc,who){
+    const other=who==='zn'?'xx':'zn', w=sc.querySelector('.duo .who.'+who), o=sc.querySelector('.duo .who.'+other); if(!w||!o) return;
+    sc._sulk=who; sulkView(w,who,true); sfx.huff();
+    const s=w.querySelector('.say'); s.textContent=who==='zn'?'哼！不理你了 😤':'……哼（轉過去）😤'; s.classList.add('on');
+    const os=o.querySelector('.say'); os.textContent=who==='zn'?'欸…我是不是戳太多了':'啊…璿璿生氣了'; os.classList.add('on');
+    const pet=sc.querySelector('.pet');
+    if(pet){ petSay(pet,{cat:'喵…（躲到旁邊）',dog:'嗚…（夾尾巴）',bird:'吵架！吵架！'}[state.pet.type],1800);
+      setTimeout(()=>{ if(sc._sulk===who) petSay(pet,`（小聲）快戳${other==='zn'?'張恩':'璿璿'}去哄哄～`,2600); },2000); }
+    clearTimeout(sc._sulkT);
+    sc._sulkT=setTimeout(()=>{ if(sc._sulk!==who) return; endSulk(sc); s.textContent='…算了啦 不氣了'; s.classList.add('on'); },20000);
+  }
+  function comfort(sc,by){
+    const who=endSulk(sc);
+    const os=sc.querySelector('.duo .who.'+by+' .say'); if(os){ os.textContent=by==='xx'?'好啦好啦 對不起嘛～':'不要生氣嘛～ 抱一個'; os.classList.add('on'); }
+    sfx.chime();
+    setTimeout(()=>doPose(sc,by==='xx'?'pat':'hug',who==='zn'?{zn:'哼…好啦 原諒你 ♡',xx:'乖～不生氣了'}:{zn:'抱一下就不氣了嘛 ♡',xx:'……好啦 不氣了 ♡'}),900);
+  }
+  /* 跳舞 */
+  function danceTime(sc,first){
+    if(sc._posing||sc.querySelectorAll('.duo .who').length<2) return; sc._posing=true;
+    if(sc._sulk) endSulk(sc);
+    sc.classList.add('dancing'); sfx.dance();
+    const L=first?['週末到了！跳舞囉 💃','動次動次～ 🕺']:[rand(['跳舞囉～ 💃','一起搖擺！','動次動次♪']),rand(['跟上我的節奏！🕺','嘿！嘿！','我是舞王 😎'])];
+    sc.querySelectorAll('.duo .who .say').forEach((s,i)=>{ s.textContent=L[i]||''; s.classList.add('on'); });
+    const notes=[]; for(let i=0;i<8;i++){ const n=document.createElement('i'); n.className='note'; n.textContent=i%2?'♪':'♫'; n.style.left=(8+Math.random()*84)+'%'; n.style.animationDelay=(-Math.random()*1.6).toFixed(2)+'s'; sc.appendChild(n); notes.push(n); }
+    const pet=sc.querySelector('.pet'); if(pet) petSay(pet,{cat:'喵～（轉圈圈）',dog:'汪汪！（追尾巴）',bird:'♪啾啾啾♪'}[state.pet.type],3000);
+    setTimeout(()=>{ sc.classList.remove('dancing'); notes.forEach(n=>n.remove()); sc._posing=false; },4600);
+  }
+  /* 餵食：用剛剛抽到的食物（還沒抽就隨便挑一個） */
+  function feedTime(sc,by){
+    if(sc.querySelectorAll('.duo .who').length<2) return;
+    const p=pool(), f=lastFood||(p.length?wPick(p):null), nm=f?f.name:'好吃的', em=f?f.emoji:'🍚';
+    by=by||(Math.random()<.5?'zn':'xx');
+    doPose(sc,by==='zn'?'feedzn':'feedxx',by==='zn'?{zn:`來，${nm}～啊～`,xx:`啊～ 好吃！${em}`}:{zn:`啊～ 😋 ${em}`,xx:`${nm}來囉，啊～`});
+  }
+  /* 週末（週五晚上、週六日）第一次打開會自動跳舞 */
+  setTimeout(()=>{ const t=tw(), wk=(t.wd===5&&t.h>=18)||t.wd===6||t.wd===0;
+    if(!wk||state.danceDay===dayKey(0)||eatWho().length<2) return; state.danceDay=dayKey(0); save(); danceTime(preview,true); },7000);
   /* 日期面板 */
   const WD='日一二三四五六';
   let lastKey='';
@@ -1574,10 +1672,12 @@ details.mini[open] summary:after{content:" ▲"}
     pv.addEventListener('click',e=>{ if(fired&&e.target.closest('.pet,.who')){ e.stopImmediatePropagation(); fired=false; } },true);
     pv.addEventListener('contextmenu',e=>{ if(e.target.closest('.who')) e.preventDefault(); });
   })();
+  document.getElementById('acts').addEventListener('click',e=>{ const b=e.target.closest('[data-act]'); if(!b||preview._posing) return; wakePet(preview);
+    const a=b.dataset.act; if(a==='hi5') doPose(preview,'hi5'); else if(a==='dance') danceTime(preview); else if(a==='feed') feedTime(preview); else heartCombo(preview); });
   /* 寵物設定列 */
   function renderPetRow(){
     const lv=petLv(), nx=petNext(), f=state.pet.fed;
-    document.getElementById('petRow').innerHTML=`<button class="tg ${state.pet.type==='cat'?'on':''}" data-pet="cat">🐱 金漸層</button><button class="tg ${state.pet.type==='dog'?'on':''}" data-pet="dog">🐶 巧克力臘腸</button><button class="tg ${state.pet.type==='bird'?'on':''}" data-pet="bird">🦜 和尚鸚鵡</button>
+    document.getElementById('petRow').innerHTML=`<button class="tg ${state.pet.type==='cat'?'on':''}" data-pet="cat">🐱 金漸層</button><button class="tg ${state.pet.type==='dog'?'on':''}" data-pet="dog">🐶 巧克力臘腸</button><button class="tg ${state.pet.type==='bird'?'on':''}" data-pet="bird">🦜 鸚鵡</button>
       <input class="pet-name" id="petName" maxlength="6" value="${esc(state.pet.name)}">
       <span class="pet-lv">Lv.${lv}・吃了 ${f} 餐${nx===Infinity?'・已經長最大了！':`・再 ${nx-f} 餐長大`}</span>`;
   }
@@ -1626,6 +1726,7 @@ details.mini[open] summary:after{content:" ▲"}
   function renderChars(){
     const who=eatWho(); renderLcd(); renderPetRow(); renderPeek();
     buildScene(preview,{who,say:statusLines(),cls:who.length===1?'solo':''});
+    document.getElementById('acts').hidden=who.length!==2;
     document.getElementById('withBtns').innerHTML=WITH.map(w=>`<button class="tg ${state.eatWith===w.id?'on':''}" data-with="${w.id}">${w.name}</button>`).join('');
     document.getElementById('moodBtns').innerHTML=MOODS.map(m=>`<button class="tg ${state.mood===m.id?'on':''}" data-mood="${m.id}">${m.name}</button>`).join('');
     const mm=MOODS.find(m=>m.id===state.mood)||MOODS[1];
@@ -1671,6 +1772,7 @@ details.mini[open] summary:after{content:" ▲"}
   function charsSpin(){}
   function charsReset(){}
   function charsDone(item,note){
+    lastFood=item;
     setTimeout(()=>openModal('開飯啦！.exe','pink',b=>{
       const sc=document.createElement('div'); b.appendChild(sc);
       const who=eatWho(), solo=who.length===1;
@@ -1983,7 +2085,10 @@ details.mini[open] summary:after{content:" ▲"}
     coin:()=>{tone(988,.07,'square',.05);tone(1319,.28,'square',.045,.07);},
     fanfare:()=>[523,659,784,1047,784,1047].forEach((f,i)=>tone(f,i===5?.32:.1,'square',.045,i*.1)),
     chime:()=>[659,880].forEach((f,i)=>tone(f,.14,'square',.04,i*.12)),
-    sad:()=>[392,330,262].forEach((f,i)=>tone(f,.18,'square',.045,i*.16))
+    sad:()=>[392,330,262].forEach((f,i)=>tone(f,.18,'square',.045,i*.16)),
+    clap:()=>{ noise(.05,.16); setTimeout(()=>noise(.04,.12),80); tone(1568,.08,'square',.03,.02); },
+    dance:()=>[523,659,784,659,523,659,784,1047,988,784,659,784].forEach((f,i)=>tone(f,.12,'square',.035,i*.18)),
+    huff:()=>[300,220].forEach((f,i)=>tone(f,.15,'square',.05,i*.13))
   };
   function tickRun(ms,startGap,endGap){ // 越轉越慢的喀喀聲
     let t=0, gap=startGap; while(t<ms){ setTimeout(sfx.tick,t); t+=gap; gap+= (endGap-startGap)*gap/ms*2.2; } }
