@@ -1227,19 +1227,32 @@ details.mini[open] summary:after{content:" ▲"}
       set(20,8,'#B83A3A'); set(21,8,'#B83A3A');   // 璿璿張嘴「啊～」
       heart(23,-10);
     } else {
-      dx=8; put(xx,dx,0); put(zn,0,dz);
-      const za=zn.m.get('10,12')||SK, xa=xx.m.get('1,12')||SK;
+      dx=8; const za=zn.m.get('10,12')||SK, xa=xx.m.get('1,12')||SK;
+      for(let y=10;y<=21;y++) xx.m.delete('1,'+y);
+      put(xx,dx,0);
+      // 璿璿比較高：手臂從他肩膀往下、繞到張恩脖子後面，手搭在她另一邊肩膀上
+      [[9,10],[9,11],[9,12],[10,13],[10,14]].forEach(([x,y])=>set(x,y,xa));
+      for(let x=1;x<=10;x++) set(x,10+dz,xa);
+      put(zn,0,dz);                                     // 張恩站在前面，擋住後面的手臂
+      // 看得見的部分：從她右肩頭髮上搭過來、脖子後面穿過、手掌搭在她左肩
+      const lum=c=>{ const n=parseInt(c.slice(1),16); return ((n>>16)&255)*.3+((n>>8)&255)*.59+(n&255)*.11; };
+      const sv=lum(xa)<80?'#6A6260':xa;
+      [[11,7+dz],[11,8+dz],[11,9+dz],[10,9+dz],[10,10+dz],[9,10+dz],[8,10+dz],[7,10+dz],[4,10+dz],[3,10+dz],[2,10+dz]].forEach(([x,y])=>set(x,y,sv));
+      for(let x=2;x<=10;x++) set(x,11+dz,sv);                                  // 整隻手臂搭在她肩膀上（兩格粗才看得出來）
+      for(let x=1;x<=10;x++) set(x,12+dz,K);                                   // 手臂下緣描線
+      [[0,10+dz],[1,10+dz],[0,11+dz],[1,11+dz],[0,12+dz]].forEach(([x,y])=>set(x,y,SK));   // 手掌搭在她左肩
       for(let x=9;x<=15;x++) set(x,17+dz-1,za);       // 張恩抱住璿璿的腰
-      for(let x=2;x<=9;x++) set(x,11+dz,xa);          // 璿璿摟住張恩的肩膀
-      set(16,16+dz-1,SK); set(1,11+dz,SK);
+      set(16,16+dz-1,SK);
       heart(6,-6);
     }
     if(state.rain){ // 兩個人靠在一起：璿璿撐一把大傘
       const mid=Math.round((dx+11)/2), r=Math.ceil((dx+12)/2)+5, rows=canopyRows(r,'3','4'), H=rows.length-2, top=-6-H-1, xa=xx.m.get('1,12')||SK;
-      for(let y=top;y<=12;y++) set(mid,y,K);
+      for(let y=top;y<=13;y++) set(mid,y,K);
       rows.forEach((row,yy)=>[...row].forEach((c,x)=>{ if(c!=='.') set(mid-r+x,top+yy,PAL[c]); }));
-      for(let x=Math.min(mid+1,dx);x<=Math.max(mid+1,dx);x++) set(x,11,xa);
-      set(mid,10,SK); set(mid,11,SK); }
+      // 璿璿用右手撐傘：手從胸前握住傘柄
+      const xr=xx.m.get('10,12')||SK; for(let y=13;y<=20;y++) m.delete((dx+10)+','+y);
+      for(let x=mid+1;x<=dx+10;x++) set(x,12,xr);
+      set(mid,11,SK); set(mid,12,SK); }
     const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
     toSvg(s,{m,glasses:6,glassList:[{dx:0,r:6+dz,on:state.glasses.zn},{dx,r:6,on:state.glasses.xx}]},unit,false);
     return s;
