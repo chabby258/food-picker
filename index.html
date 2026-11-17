@@ -416,6 +416,7 @@ details.mini[open] summary:after{content:" ▲"}
 .scene.tp-dusk .sun,.scene.tp-dusk .bigsun{top:auto;bottom:86px;filter:saturate(1.4) hue-rotate(-18deg)}
 .scene.tp-night .cloud,.scene.tp-late .cloud{filter:brightness(.55)}
 .scene.tp-night .say,.scene.tp-late .say{box-shadow:2px 2px 0 #000}
+.fx .moon.big{width:64px;height:64px;right:22px;top:14px}
 .fx .moon{position:absolute;right:16px;top:10px;width:40px;height:40px;filter:drop-shadow(0 0 8px rgba(255,243,196,.8))}
 .fx .star{position:absolute;width:3px;height:3px;background:#FFF3C4;animation:tw 1.6s steps(2) infinite}
 @keyframes tw{50%{opacity:.2}}
@@ -708,9 +709,11 @@ details.mini[open] summary:after{content:" ▲"}
   if(state.sound===undefined) state.sound=true;
   if(state.weekdaySave===undefined) state.weekdaySave=false;
   const pad=n=>String(n).padStart(2,'0');
-  function dayKey(off){ const d=new Date(); d.setDate(d.getDate()+off); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+  const TWF=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Taipei',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',hourCycle:'h23',weekday:'short'});
+  function tw(){ const o={}; TWF.formatToParts(new Date()).forEach(x=>o[x.type]=x.value); return {y:+o.year,m:+o.month,d:+o.day,h:(+o.hour)%24,mi:+o.minute,wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(o.weekday)}; }
+  function dayKey(off){ const t=tw(), d=new Date(Date.UTC(t.y,t.m-1,t.d+off)); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`; }
   function dayLabel(k){ if(k===dayKey(0)) return '今天'; if(k===dayKey(-1)) return '昨天'; if(k===dayKey(-2)) return '前天'; const p=k.split('-'); return `${+p[1]}/${+p[2]}`; }
-  const isWeekday=()=>{ const g=new Date().getDay(); return g>=1&&g<=5; };
+  const isWeekday=()=>{ const g=tw().wd; return g>=1&&g<=5; };
   const activeTiers=()=>(state.weekdaySave&&isWeekday())?['save']:state.tiers;
   const COLD_FOOD=new Set(['涼麵','沙拉','壽司','三明治','飯糰','健康餐盒','海鮮丼']);
   const SOUP=new Set(['牛肉麵','拉麵','鍋燒意麵','越南河粉','水餃']);
@@ -999,10 +1002,10 @@ details.mini[open] summary:after{content:" ▲"}
   const XX_OUT=[['tee','白T短褲'],['black','黑T牛仔褲'],['flannel','格紋襯衫'],['varsity','棒球外套'],['jersey','籃球球衣'],['denim','丹寧外套'],['hoodie','帽T'],['suit','西裝'],['jinbei','甚平'],['office','上班襯衫'],['pajama','條紋睡衣'],['raincoat','黃色雨衣'],['xmas','聖誕毛衣'],['aloha','夏威夷衫']];
   const AUTO_OUT={hot:{zn:'dress',xx:'tee'},comfy:{zn:'stripe',xx:'black'},cool:{zn:'cardigan',xx:'flannel'},cold:{zn:'coat',xx:'varsity'}};
   function drawZn(o,eat){
-    const {m,R}=px(); const H='#2E2622', HL='#4A3E38', N='#425B9A';
-    R(3,0,6,1,H); R(2,1,8,1,H); R(1,2,10,3,H); R(1,5,2,5,H); R(9,5,2,5,H); R(0,9,1,1,H); R(11,9,1,1,H);
-    R(3,1,2,1,HL); R(2,2,1,1,HL);
-    R(3,5,6,5,SK); R(3,5,1,1,H); R(8,5,1,1,H);
+    const {m,R}=px(); const H='#2B211E', HL='#4A3A33', N='#425B9A';
+    R(3,0,6,1,H); R(2,1,8,1,H); R(1,2,10,2,H); R(1,4,10,1,H); R(1,5,2,6,H); R(9,5,2,6,H); R(0,10,1,1,H); R(11,10,1,1,H); R(0,9,1,1,H); R(11,9,1,1,H);
+    R(3,1,2,1,HL); R(2,2,1,1,HL); R(7,1,1,1,HL);
+    R(3,5,6,5,SK); R(5,4,1,1,SK); R(7,4,1,1,SK); R(3,5,1,1,H); R(8,5,1,1,H); R(2,10,1,1,H); R(9,10,1,1,H);
     face(R,6);
     R(5,10,2,1,SK);
     const arms=(c,long)=>{ R(1,11,1,long?6:2,c); R(10,11,1,long?6:2,c); if(!long){R(1,13,1,4,SK);R(10,13,1,4,SK);} R(1,17,1,1,SK); R(10,17,1,1,SK); };
@@ -1087,7 +1090,7 @@ details.mini[open] summary:after{content:" ▲"}
   }
   const WX=[{id:'auto',name:'依季節'},{id:'hot',name:'☀️ 熱'},{id:'comfy',name:'🌤 舒服'},{id:'cool',name:'🍂 涼'},{id:'cold',name:'❄️ 冷'},{id:'rain',name:'☔ 下雨'}];
   if(!state.wx) state.wx='auto'; if(!state.glasses) state.glasses={zn:false,xx:false}; if(state.rain===undefined) state.rain=false;
-  function seasonWx(){ const mo=new Date().getMonth()+1; return [1,2,12].includes(mo)?'cold':[3,11].includes(mo)?'cool':[4,10].includes(mo)?'comfy':'hot'; }
+  function seasonWx(){ const mo=tw().m; return [1,2,12].includes(mo)?'cold':[3,11].includes(mo)?'cool':[4,10].includes(mo)?'comfy':'hot'; }
   const curWx=()=>state.wx==='auto'?seasonWx():state.wx;
   const wxName={hot:'熱',comfy:'舒服',cool:'涼',cold:'冷'};
   if(!state.outfit) state.outfit={zn:'auto',xx:'auto'};
@@ -1233,28 +1236,63 @@ details.mini[open] summary:after{content:" ▲"}
     anniv:{banner:'',lines:['在一起紀念日快樂 💕','謝謝你一直陪我 💕'],treat:3},
     val:{banner:'💌 情人節快樂！',lines:['情人節快樂 💌','今天要吃浪漫一點的！'],treat:3},
     xmas:{banner:'🎄 Merry Christmas！',lines:['聖誕快樂！🎄','聖誕大餐走起～'],treat:3},
-    cny:{banner:'🧧 新年快樂！恭喜發財',lines:['新年快樂！紅包拿來 🧧','恭喜發財～吃團圓飯'],treat:3}
+    cny:{banner:'🧧 新年快樂！恭喜發財',lines:['新年快樂！紅包拿來 🧧','恭喜發財～吃團圓飯'],treat:3},
+    cnyeve:{banner:'🧧 除夕快樂！吃年夜飯囉',lines:['今天要吃年夜飯！','圍爐～守歲～🧧'],treat:4},
+    yuanxiao:{banner:'🏮 元宵節快樂！',lines:['元宵節要吃湯圓～','一起去看燈會吧 🏮'],treat:2},
+    newyear:{banner:'🎆 元旦快樂！新的一年',lines:['新年快樂 🎆','今年也要一起吃好料！'],treat:2},
+    nye:{banner:'🎆 跨年快樂！',lines:['倒數計時～🎆','跨年夜吃什麼？'],treat:3},
+    kids:{banner:'🎈 兒童節快樂！',lines:['今天我是小朋友！🎈','那我也是！'],treat:2},
+    mom:{banner:'💐 母親節快樂！',lines:['帶媽媽去吃好料 💐','要訂餐廳了嗎？'],treat:3},
+    dad:{banner:'👔 父親節快樂！',lines:['爸爸辛苦了 👔','請爸爸吃大餐！'],treat:3},
+    dragon:{banner:'🐉 端午節快樂！吃粽子',lines:['吃粽子囉～','南部粽還北部粽？'],treat:2},
+    qixi:{banner:'🌌 七夕情人節快樂！',lines:['七夕快樂 💕','今晚一起看星星 🌌'],treat:3},
+    moon:{banner:'🥮 中秋節快樂！烤肉賞月',lines:['中秋要烤肉！🍖','月亮好圓～🥮'],treat:2},
+    national:{banner:'🎆 國慶日快樂！',lines:['放假囉～','晚上看煙火！🎆'],treat:2}
   };
   let previewSp=null, previewTp=null;
+  /* 台灣農曆節日（依行政院人事行政總處／中央氣象署農民曆；表外年份用瀏覽器農曆推算） */
+  const LUNAR={2026:{cny:'2-17',dw:'6-19',qx:'8-19',zq:'9-25'},2027:{cny:'2-6',dw:'6-9',qx:'8-8',zq:'9-15'},2028:{cny:'1-26',dw:'5-28',qx:'8-26',zq:'10-3'},
+    2029:{cny:'2-13',dw:'6-16',qx:'8-16',zq:'9-22'},2030:{cny:'2-3',dw:'6-5',qx:'8-5',zq:'9-12'},2031:{cny:'1-23',dw:'6-24',qx:'8-24',zq:'10-1'},2032:{cny:'2-11',dw:'6-12',qx:'8-12',zq:'9-19'}};
+  const dnum=(y,m,d)=>Date.UTC(y,m-1,d)/864e5;
+  function lunarFest(t){
+    const today=dnum(t.y,t.m,t.d), L=LUNAR[t.y];
+    if(L){ const at=k=>{ const [m,d]=L[k].split('-').map(Number); return today-dnum(t.y,m,d); };
+      const c=at('cny');
+      if(c===-1) return 'cnyeve'; if(c>=0&&c<=4) return 'cny'; if(c===14) return 'yuanxiao';
+      if(at('dw')===0) return 'dragon'; if(at('qx')===0) return 'qixi'; if(at('zq')===0) return 'moon';
+      const nx=LUNAR[t.y+1]; if(nx){ const [m,d]=nx.cny.split('-').map(Number); if(dnum(t.y+1,m,d)-today===1) return 'cnyeve'; }
+      return null; }
+    try{ const f=new Intl.DateTimeFormat('en-u-ca-chinese',{timeZone:'Asia/Taipei',month:'numeric',day:'numeric'}); const md=dt=>{ const q={}; f.formatToParts(dt).forEach(x=>q[x.type]=x.value); return q.month+'/'+q.day; };
+      const k=md(new Date()), tm=md(new Date(Date.now()+864e5));
+      if(tm==='1/1') return 'cnyeve'; if(['1/1','1/2','1/3','1/4','1/5'].includes(k)) return 'cny'; if(k==='1/15') return 'yuanxiao';
+      if(k==='5/5') return 'dragon'; if(k==='7/7') return 'qixi'; if(k==='8/15') return 'moon'; }catch(e){}
+    return null;
+  }
   function specialDay(){
     if(previewSp!==null) return previewSp||null;
-    const d=new Date(), m=d.getMonth()+1, dd=d.getDate(), y=d.getFullYear();
-    if(m===10&&dd===17) return 'bd_zn';
-    if(m===4&&dd===7) return 'bd_xx';
-    if(m===12&&dd===3) return 'anniv';
-    if(m===2&&dd===14) return 'val';
-    if(m===12&&(dd===24||dd===25)) return 'xmas';
-    const c=CNY[y]; if(c){ const t=new Date(y,c[0]-1,c[1]); const diff=Math.round((new Date(y,m-1,dd)-t)/864e5); if(diff>=-1&&diff<=3) return 'cny'; }
+    const t=tw(), m=t.m, d=t.d;
+    if(m===10&&d===17) return 'bd_zn';
+    if(m===4&&d===7) return 'bd_xx';
+    if(m===12&&d===3) return 'anniv';
+    const lf=lunarFest(t); if(lf) return lf;
+    if(m===1&&d===1) return 'newyear';
+    if(m===2&&d===14) return 'val';
+    if(m===4&&d===4) return 'kids';
+    if(m===5&&t.wd===0&&d>=8&&d<=14) return 'mom';
+    if(m===8&&d===8) return 'dad';
+    if(m===10&&d===10) return 'national';
+    if(m===12&&(d===24||d===25)) return 'xmas';
+    if(m===12&&d===31) return 'nye';
     return null;
   }
   function timePhase(){
     if(previewTp) return previewTp;
-    const h=new Date().getHours();
+    const h=tw().h;
     return h>=5&&h<9?'dawn':h<16&&h>=9?'day':h>=16&&h<19?'dusk':h>=19&&h<22?'night':'late';
   }
   const TP_NAME={dawn:'🌅 早上',day:'☀️ 白天',dusk:'🌇 傍晚',night:'🌙 晚上',late:'🌌 深夜宵夜時間'};
-  function togetherDays(){ const t=new Date(); t.setHours(0,0,0,0); return Math.floor((t-ANNIV)/864e5)+1; }
-  function annivYears(){ return new Date().getFullYear()-2023; }
+  function togetherDays(){ const t=tw(); return Math.floor((Date.UTC(t.y,t.m-1,t.d)-Date.UTC(2023,11,3))/864e5)+1; }
+  function annivYears(){ return tw().y-2023; }
   const NIGHT_SNACK=new Set(['鹽酥雞','臭豆腐','蔥抓餅','炒飯','水餃','鍋燒意麵','乾麵','滷肉飯']);
   function extraWeight(it){
     let w=1; const sp=specialDay();
@@ -1272,22 +1310,25 @@ details.mini[open] summary:after{content:" ▲"}
   }
   /* 寵物 */
   if(!state.pet) state.pet={type:'cat',name:'咪咪',fed:0};
+  Object.assign(PAL,{j:'#EDB664',J:'#C98A3A',h:'#FFE9C4',e:'#3D4A57',i:'#F4A7A0',d:'#3B3F45',t:'#E08E4A',E:'#2A2D33'});
   const PET={
-    cat:["o...o......","oo.oo......","ooooo....o.","oKooKo...o.","oopoooo.oo.",".ooooooooo.","..oOoooOoo.","..ooooooo..","..o.o..o.o."],
-    dog:["y....y.....","yy..yy.....","yyyyyy.....","yKyyKyy..y.","yyWWpyy.yy.",".yWWWyyyyy.","..yyyyyyyy.","..yyyyyyy..","..y.y..y.y."]
+    cat:["..J..........J..",".JjJ........JjJ.",".JijJjjjjjjJjiJ.",".jijjjjjjjjjjij.","jjjjjjjjjjjjjjjj","jjjjWejjjjWejjjj","jjjjeejjjjeejjjj","jjjjhhhpphhhjjjj",".jjjhhhKKhhhjjj.","..jjjhhhhhhjjj..","..Jjjhhhhhhjj...",".JjjjhhhhhhjjjJ.",".jjjjhhhhhhjjjjJ",".jjjjjhhhhjjjjjJ",".jhhjjjjjjjjhhjJ",".hhhh.jjjj.hhhhJ"],
+    dog:["...ddd..............","..dddddE.......d....",".ddKdddEE......d....","KttddddEEE.....d....",".tttttdEEddddddd....","..ptttrrrddddddd....","...ttWrtdddddddt....","....tttttttttttt....","....tt.tt...tt.tt...","....tt.tt...tt.tt..."]
   };
+
   const petLv=()=>{ const f=state.pet.fed; return f<5?1:f<15?2:f<30?3:4; };
   const petNext=()=>[5,15,30,Infinity][petLv()-1];
   function petSvg(unit){
     const rows=PET[state.pet.type].map(r=>r.split(''));
     const wx=state.rain?'rain':curWx();
-    if(wx==='cold'){ for(let x=1;x<7;x++) rows[5][x]='r'; rows[6][2]='r'; }
-    if(wx==='rain'){ for(let x=0;x<6;x++) rows[0][x]='y'; rows[1].forEach((c,x)=>{ if(x<6&&c==='.') rows[1][x]='y'; }); }
+    const cat=state.pet.type==='cat';
+    if(wx==='cold'){ if(cat){ for(let x=3;x<13;x++) rows[9][x]='r'; rows[10][11]='r'; rows[11][11]='r'; } else { for(let y=4;y<7;y++) for(let x=9;x<15;x++) if(rows[y][x]==='d') rows[y][x]='r'; } }
+    if(wx==='rain'){ if(cat){ for(let x=1;x<15;x++){ rows[0][x]='y'; if(rows[1][x]!=='.') rows[1][x]='y'; } rows[1][0]='y'; rows[1][15]='y'; } else { for(let y=4;y<7;y++) for(let x=9;x<15;x++) if(rows[y][x]==='d') rows[y][x]='y'; } }
     SPR.__pet=rows.map(r=>r.join('')); delete SPC['__pet'+unit];
     PAL.o=PAL.o; return sprite('__pet',unit,'','');
   }
   function petHTML(eat){
-    const u=[0,3,4,5,6][petLv()];
+    const u=(state.pet.type==='cat'?[0,3,3,4,4]:[0,2,3,3,4])[petLv()];
     return `<div class="pet ${eat?'eating':''}" title="${esc(state.pet.name)}"><div class="say pet-say"></div>${petSvg(u)}${eat?'<span class="petbowl"></span>':''}<span class="tag">${esc(state.pet.name)}</span></div>`;
   }
   /* 時間＆特別日子的天空效果 */
@@ -1308,10 +1349,20 @@ details.mini[open] summary:after{content:" ▲"}
       if(sp==='bd_zn'||sp==='bd_xx'){ const cs=['#FF95A5','#FFE07A','#76C0EC','#91AE6E','#C6B5EA']; for(let i=0;i<30;i++) add+=`<i class="confetti" style="left:${r(0,98)}%;background:${cs[i%5]};animation-duration:${r(2.5,4.5)}s;animation-delay:-${r(0,4)}s"></i>`; add+=sprite('cake',3,'cake','bottom:10px;right:8%'); }
       if(sp==='anniv'||sp==='val'){ for(let i=0;i<12;i++) add+=pxHeart(i%2?'#FF95A5':'#E06B80',`left:${r(4,94)}%;width:${14+Math.round(Math.random()*10)}px;animation-duration:${r(3,5.5)}s;animation-delay:-${r(0,5)}s`); }
       if(sp==='xmas'){ add+=sprite('xtree',4,'twinkle','bottom:8px;right:6%'); for(let i=0;i<18;i++) add+=`<i class="snow" style="left:${r(0,98)}%;animation-duration:${r(3.5,6.5)}s;animation-delay:-${r(0,6)}s"></i>`; }
+      if(sp==='newyear'||sp==='nye'||sp==='national'){ for(let i=0;i<16;i++) add+=`<i class="spark" style="left:${r(6,94)}%;top:${r(6,50)}%;animation-delay:-${r(0,1.5)}s"></i>`; }
+      if(sp==='kids'){ const cs=['#FF95A5','#FFE07A','#76C0EC','#91AE6E']; for(let i=0;i<20;i++) add+=`<i class="confetti" style="left:${r(0,98)}%;background:${cs[i%4]};animation-duration:${r(2.5,4.5)}s;animation-delay:-${r(0,4)}s"></i>`; }
+      if(sp==='mom'||sp==='dad'||sp==='qixi'){ for(let i=0;i<10;i++) add+=pxHeart(i%2?'#FF95A5':'#E06B80',`left:${r(4,94)}%;width:${14+Math.round(Math.random()*8)}px;animation-duration:${r(3,5.5)}s;animation-delay:-${r(0,5)}s`); }
+      if(sp==='qixi'&&!/class="star"/.test(h+add)) for(let i=0;i<14;i++) add+=`<i class="star" style="left:${r(2,96)}%;top:${r(2,45)}%;animation-delay:-${r(0,2)}s"></i>`;
+      if(sp==='moon'&&!/class="moon"/.test(h+add)) add+=moonSvg.replace('class="moon"','class="moon big"');
+      if(sp==='dragon') add+=sprite('zongzi',3,'cake','bottom:10px;right:9%');
+      if(sp==='yuanxiao'||sp==='cnyeve') add+=sprite('lantern',3,'swing','top:0;left:4%')+sprite('lantern',3,'swing','top:0;right:4%;animation-delay:-.8s');
+      if(sp==='cnyeve') add+=sprite('hotpot',3,'cake','bottom:10px;right:9%');
       if(sp==='cny'){ add+=sprite('lantern',3,'swing','top:0;left:4%')+sprite('lantern',3,'swing','top:0;right:4%;animation-delay:-.8s'); for(let i=0;i<10;i++) add+=`<i class="spark" style="left:${r(10,90)}%;top:${r(10,45)}%;animation-delay:-${r(0,1.5)}s"></i>`; }
     }
     return h.replace(/<\/div>$/,'')+add+'</div>';
   }
+  SPR.zongzi=["....G....","...GGG...","..GgGgG..",".GgGgGgG.","GgGrrrGgG","GGGGGGGGG"];
+  SPR.hotpot=[".s.s.s.s.","..s.s.s..","KKKKKKKKK","KrrryrrrK","KryrrryrK",".KKKKKKK.","..KK.KK.."];
   SPR.cake=["..y..y..y..","..r..r..r..","WWWWWWWWWWW","WpWpWpWpWpW","ppppppppppp","WWWWWWWWWWW","mmmmmmmmmmm"];
   SPR.xtree=[".....y.....","....yyy....","....GgG....","...GgrgG...","..GgGgGyG..","...GGgGG...","..GrgGgGgG.",".GgGGyGgrGG","..GgGgGGg..",".GGrgGgGyGG","GgGGgGGgGgG","....BBB....","....BBB...."];
   SPR.lantern=["....K....","....K....","..yyyyy..",".rrrrrrr.","rrryyyrrr","rrrrrrrrr","rrryyyrrr",".rrrrrrr.","..yyyyy..","...y.y...","...y.y..."];
@@ -1343,18 +1394,18 @@ details.mini[open] summary:after{content:" ▲"}
   const WD='日一二三四五六';
   let lastKey='';
   function renderLcd(fromTimer){
-    const d=new Date(), p=n=>String(n).padStart(2,'0'), sp=specialDay();
+    const t=tw(), p=n=>String(n).padStart(2,'0'), sp=specialDay();
     const spTxt=sp?(sp==='anniv'?`💕 在一起 ${annivYears()} 週年`:SP_INFO[sp].banner):'';
-    document.getElementById('lcd').innerHTML=`<div class="lcd-l"><b>${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())}（${WD[d.getDay()]}）</b><span>${p(d.getHours())}:${p(d.getMinutes())}</span></div>
+    document.getElementById('lcd').innerHTML=`<div class="lcd-l"><b>${t.y}/${p(t.m)}/${p(t.d)}（${WD[t.wd]}）</b><span>台灣 ${p(t.h)}:${p(t.mi)}</span></div>
       <div class="lcd-l"><span>💕 在一起第 <b>${togetherDays()}</b> 天</span><span>${TP_NAME[timePhase()]}</span></div>${spTxt?`<div class="lcd-sp">${spTxt}</div>`:''}`;
-    const key=timePhase()+'|'+sp+'|'+d.getDate(), changed=lastKey&&key!==lastKey;
+    const key=timePhase()+'|'+sp+'|'+t.d, changed=lastKey&&key!==lastKey;
     lastKey=key;
     if(fromTimer&&changed){ renderChars(); newWheelSet(); if(state.style==='wheel') drawWheel(); }
   }
   setInterval(()=>renderLcd(true),20000);
   /* 偷看彩蛋 */
   const PEEK_TP=[['','現在時間'],['dawn','🌅 早上'],['day','☀️ 白天'],['dusk','🌇 傍晚'],['night','🌙 晚上'],['late','🌌 深夜']];
-  const PEEK_SP=[[null,'今天'],['bd_zn','🎂 張恩生日'],['bd_xx','🎂 璿璿生日'],['anniv','💕 紀念日'],['val','💌 情人節'],['xmas','🎄 聖誕節'],['cny','🧧 過年']];
+  const PEEK_SP=[[null,'今天'],['bd_zn','🎂 張恩生日'],['bd_xx','🎂 璿璿生日'],['anniv','💕 紀念日'],['newyear','🎆 元旦'],['cnyeve','🧧 除夕'],['cny','🧧 春節'],['yuanxiao','🏮 元宵'],['val','💌 情人節'],['kids','🎈 兒童節'],['mom','💐 母親節'],['dragon','🐉 端午'],['qixi','🌌 七夕'],['dad','👔 父親節'],['moon','🥮 中秋'],['national','🎆 國慶'],['xmas','🎄 聖誕節'],['nye','🎆 跨年']];
   function renderPeek(){
     document.getElementById('peekTp').innerHTML=PEEK_TP.map(([k,n])=>`<button class="tg ${(previewTp||'')===k?'on':''}" data-ptp="${k}">${n}</button>`).join('');
     document.getElementById('peekSp').innerHTML=PEEK_SP.map(([k,n])=>`<button class="tg ${previewSp===k?'on':''}" data-psp="${k===null?'':k}">${n}</button>`).join('');
@@ -1364,11 +1415,11 @@ details.mini[open] summary:after{content:" ▲"}
   /* 寵物設定列 */
   function renderPetRow(){
     const lv=petLv(), nx=petNext(), f=state.pet.fed;
-    document.getElementById('petRow').innerHTML=`<button class="tg ${state.pet.type==='cat'?'on':''}" data-pet="cat">🐱 貓</button><button class="tg ${state.pet.type==='dog'?'on':''}" data-pet="dog">🐶 狗</button>
+    document.getElementById('petRow').innerHTML=`<button class="tg ${state.pet.type==='cat'?'on':''}" data-pet="cat">🐱 金漸層</button><button class="tg ${state.pet.type==='dog'?'on':''}" data-pet="dog">🐶 臘腸狗</button>
       <input class="pet-name" id="petName" maxlength="6" value="${esc(state.pet.name)}">
       <span class="pet-lv">Lv.${lv}・吃了 ${f} 餐${nx===Infinity?'・已經長最大了！':`・再 ${nx-f} 餐長大`}</span>`;
   }
-  document.getElementById('petRow').addEventListener('click',e=>{ const b=e.target.closest('[data-pet]'); if(!b) return; state.pet.type=b.dataset.pet; save(); renderPetRow(); renderChars(); });
+  document.getElementById('petRow').addEventListener('click',e=>{ const b=e.target.closest('[data-pet]'); if(!b) return; state.pet.type=b.dataset.pet; if(['咪咪','臘腸'].includes(state.pet.name)) state.pet.name=state.pet.type==='cat'?'咪咪':'臘腸'; save(); renderPetRow(); renderChars(); });
   document.getElementById('petRow').addEventListener('change',e=>{ if(e.target.id!=='petName') return; state.pet.name=e.target.value.trim()||'咪咪'; save(); renderPetRow(); renderChars(); });
   function feedPet(){
     const before=petLv(); state.pet.fed++; save(); renderPetRow();
