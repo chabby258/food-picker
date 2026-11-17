@@ -1521,6 +1521,9 @@ details.mini[open] summary:after{content:" ▲"}
     const w=rows[0].length, h=rows.length;
     return `<svg class="prop" width="${w*unit}" height="${h*unit}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges">${o}</svg>`;
   }
+  // 按鈕上的小鸚鵡圖示：跟寵物同一隻（北海道聊天室那隻）
+  function birdMini(){ let o=''; PET.bird.forEach((r,y)=>[...r].forEach((c,x)=>{ if(BIRD_PAL[c]) o+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${BIRD_PAL[c]}"/>`; }));
+    return `<svg width="20" height="18" viewBox="0 0 13 12" shape-rendering="crispEdges" style="vertical-align:-4px">${o}</svg>`; }
   function petSvg(unit){
     if(state.pet.type==='bird') return birdSvg(unit);
     const rows=PET[state.pet.type].map(r=>r.split(''));
@@ -1780,7 +1783,7 @@ details.mini[open] summary:after{content:" ▲"}
   /* 寵物設定列 */
   function renderPetRow(){
     const lv=petLv(), nx=petNext(), f=state.pet.fed;
-    document.getElementById('petRow').innerHTML=`<button class="tg ${state.pet.type==='cat'?'on':''}" data-pet="cat">🐱 金漸層</button><button class="tg ${state.pet.type==='dog'?'on':''}" data-pet="dog">🐶 巧克力臘腸</button><button class="tg ${state.pet.type==='bird'?'on':''}" data-pet="bird">🦜 鸚鵡</button>
+    document.getElementById('petRow').innerHTML=`<button class="tg ${state.pet.type==='cat'?'on':''}" data-pet="cat">🐱 金漸層</button><button class="tg ${state.pet.type==='dog'?'on':''}" data-pet="dog">🐶 巧克力臘腸</button><button class="tg ${state.pet.type==='bird'?'on':''}" data-pet="bird">${birdMini()} 鸚鵡</button>
       <input class="pet-name" id="petName" maxlength="6" value="${esc(state.pet.name)}">
       <span class="pet-lv">Lv.${lv}・吃了 ${f} 餐${nx===Infinity?'・已經長最大了！':`・再 ${nx-f} 餐長大`}</span>`;
   }
