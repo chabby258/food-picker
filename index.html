@@ -376,7 +376,11 @@ details.mini[open] summary:after{content:" ▲"}
 @keyframes ripple{0%{transform:scale(.4);opacity:1}100%{transform:scale(3);opacity:0}}
 /* ===== 衣櫃 ===== */
 .wardrobe{border-top:3px dashed #D8D4D0;padding-top:12px;margin-top:4px}
-.wr-h{font-size:16px;font-weight:400;margin-bottom:8px}
+.wr-h{font-size:16px;font-weight:400;cursor:pointer;list-style:none}
+.wr-h::-webkit-details-marker{display:none}
+.wr-h:after{content:" ▼";font-size:11px}
+.wardrobe[open] .wr-h:after{content:" ▲"}
+.wardrobe[open] .wr-h{margin-bottom:8px}
 .wr-h small{font-size:12px;color:var(--muted);margin-left:6px}
 .wr-who{display:flex;align-items:center;gap:8px;margin:8px 0 6px}
 .tagz{font-size:13px;border:2px solid var(--ink);padding:0 8px}
@@ -454,6 +458,25 @@ details.mini[open] summary:after{content:" ▲"}
 
 
 
+
+  <section class="card" id="todayCard">
+    <div class="win pink"><i></i><i></i><i></i><span>今天的狀態.exe</span></div>
+    <div id="preview"></div>
+    <div class="body">
+      <div class="st-row"><span class="lab">跟誰吃</span><span class="st-btns" id="withBtns"></span></div>
+      <div class="st-row"><span class="lab">餓度</span><span class="st-btns" id="moodBtns"></span></div>
+      <div class="hunger"><span class="lab">肚子</span><span class="bar" id="hunger"></span><span class="hz" id="hungerTxt"></span></div>
+      <div class="st-row"><span class="lab">天氣</span><span class="st-btns" id="wxBtns"></span></div>
+      <p class="boost" id="boost"></p>
+      <details class="wardrobe">
+        <summary class="wr-h">👕 衣櫃 <small>點開幫兩個人挑衣服～</small></summary>
+        <div class="wr-who"><span class="tagz zn">張恩</span><button class="tg" id="gZn">👓 眼鏡</button></div>
+        <div class="wr" id="wrZn"></div>
+        <div class="wr-who"><span class="tagz xx">璿璿</span><button class="tg" id="gXx">👓 眼鏡</button></div>
+        <div class="wr" id="wrXx"></div>
+      </details>
+    </div>
+  </section>
 
   <!-- A wheel -->
   <section class="card style-page" data-page="wheel">
@@ -544,24 +567,7 @@ details.mini[open] summary:after{content:" ▲"}
 
   <div class="checker" style="border-radius:4px;margin:0 0 20px"></div>
 
-  <section class="card" id="todayCard">
-    <div class="win pink"><i></i><i></i><i></i><span>今天的狀態.exe</span></div>
-    <div id="preview"></div>
-    <div class="body">
-      <div class="st-row"><span class="lab">跟誰吃</span><span class="st-btns" id="withBtns"></span></div>
-      <div class="st-row"><span class="lab">餓度</span><span class="st-btns" id="moodBtns"></span></div>
-      <div class="hunger"><span class="lab">肚子</span><span class="bar" id="hunger"></span><span class="hz" id="hungerTxt"></span></div>
-      <div class="st-row"><span class="lab">天氣</span><span class="st-btns" id="wxBtns"></span></div>
-      <p class="boost" id="boost"></p>
-      <div class="wardrobe">
-        <h3 class="wr-h">👕 衣櫃 <small>幫兩個人挑衣服～</small></h3>
-        <div class="wr-who"><span class="tagz zn">張恩</span><button class="tg" id="gZn">👓 眼鏡</button></div>
-        <div class="wr" id="wrZn"></div>
-        <div class="wr-who"><span class="tagz xx">璿璿</span><button class="tg" id="gXx">👓 眼鏡</button></div>
-        <div class="wr" id="wrXx"></div>
-      </div>
-    </div>
-  </section>
+
   <section class="card">
     <div class="body">
       <h2 class="sec"><span>想吃哪一類？</span></h2>
