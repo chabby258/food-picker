@@ -476,6 +476,7 @@ details.mini[open] summary:after{content:" ▲"}
 .note{position:absolute;bottom:45%;z-index:5;font-size:18px;color:var(--ink);font-style:normal;pointer-events:none;animation:noteUp 1.6s steps(8) infinite}
 @keyframes noteUp{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-70px);opacity:0}}
 .who.both .say{white-space:nowrap}
+.scene.rain:not(.yay) .pet:not(.perch){bottom:34px}
 .scene.rain .duo{gap:84px}
 .scene.rain:not(.yay):not(.solo) .duo{gap:0}
 .scene.rain:not(.yay):not(.solo) .duo .who.xx{margin-left:-8px}
@@ -1360,7 +1361,7 @@ details.mini[open] summary:after{content:" ▲"}
       duo.appendChild(d);
     });
     el.insertAdjacentHTML('beforeend',petHTML(!!opts.eat));
-    requestAnimationFrame(()=>{ el.querySelectorAll('.duo .who').forEach(placeUmb); if(state.pet.type==='bird') perchBird(el); });
+    requestAnimationFrame(()=>{ el.querySelectorAll('.duo .who').forEach(placeUmb); if(state.pet.type==='bird') perchBird(el); else petUnderUmb(el); });
     if(!el._poke){ el._poke=true; el.addEventListener('click',e=>pokeScene(el,e)); }
     if(opts.dish&&opts.who.length===2) requestAnimationFrame(()=>centerTable(el));
   }
@@ -1557,13 +1558,7 @@ details.mini[open] summary:after{content:" ▲"}
     // 鬧脾氣中：戳生氣的人 → 還在氣；戳另一個人 → 去哄他
     if(sc._sulk){ if(who===sc._sulk){ say.textContent=rand(['哼！😤','不要理我！','還戳！','（假裝沒聽到）']); say.classList.add('on'); hopEl(w,'poke'); sfx.huff(); } else comfort(sc,who); return; }
     // 先戳一個、再戳另一個 → 牽手
-    if(lastPoke&&lastPoke.who!==who&&now-lastPoke.t<1800&&sc.querySelectorAll('.who').length===2){ const first=lastPoke.who; lastPoke=null; taps=[]; doPose(sc,first==='zn'?'hold':'pat'); return; }
-    // 隔一陣子第一次戳 → 有一半機會觸發兩人互動（擊掌／跳舞／餵食／比心）
-    const fresh=!lastPoke||now-lastPoke.t>1600;
-    if(fresh&&!sc._posing&&sc.querySelectorAll('.duo .who').length===2&&Math.random()<.5){
-      lastPoke=null; samePokes=0; const a=rand(['hi5','dance','feed','heart']);
-      if(a==='hi5') doPose(sc,'hi5'); else if(a==='dance') danceTime(sc); else if(a==='feed') feedTime(sc,who); else heartCombo(sc);
-      return; }
+    if(lastPoke&&lastPoke.who!==who&&now-lastPoke.t<1800&&sc.querySelectorAll('.who').length===2){ const first=lastPoke.who; lastPoke=null; taps=[]; twoPlay(sc,first); return; }
     // 一直戳同一個人 5 次 → 鬧脾氣
     samePokes=(lastPoke&&lastPoke.who===who&&now-lastPoke.t<1600)?samePokes+1:1;
     if(samePokes>=5&&sc.querySelectorAll('.duo .who').length===2){ samePokes=0; lastPoke=null; sulk(sc,who); return; }
@@ -1592,10 +1587,10 @@ details.mini[open] summary:after{content:" ▲"}
     box.appendChild(comboSvg(pose,4)); box.insertAdjacentHTML('beforeend','<span class="tag">張恩 ♡ 璿璿</span>');
     duo.appendChild(box); hopEl(box,'poke'); if(pose==='hi5') sfx.clap(); else if(pose.startsWith('feed')) sfx.plop(); else sfx.chime();
     const pet=sc.querySelector('.pet'), oldL=pet&&pet.style.left;
-    if(pet&&!pet.classList.contains('perch')){ pet.style.transition='left .5s steps(5)'; pet.style.marginLeft='0'; pet.style.left='12%'; }
+    if(pet&&!pet.classList.contains('perch')&&!state.rain){ pet.style.transition='left .5s steps(5)'; pet.style.marginLeft='0'; pet.style.left='12%'; }
     else if(pet){ pet.style.transition='left .5s steps(5)'; pet.style.left=Math.min(parseFloat(oldL)+70,sc.clientWidth-120)+'px'; }   // 鸚鵡先飛開，不要擋到兩個人
     if(pet) setTimeout(()=>{ petSay(pet,L.pet[state.pet.type],2000); hopEl(pet,'hop2'); },800);
-    setTimeout(()=>{ box.remove(); kids.forEach(k=>k.style.display=''); sc._posing=false; if(pet&&!pet.classList.contains('perch')){ pet.style.left=oldL||''; pet.style.marginLeft=''; } else if(pet) pet.style.left=oldL; },4200);
+    setTimeout(()=>{ box.remove(); kids.forEach(k=>k.style.display=''); sc._posing=false; if(pet&&!pet.classList.contains('perch')){ if(!state.rain){ pet.style.left=oldL||''; pet.style.marginLeft=''; } } else if(pet) pet.style.left=oldL; },4200);
   }
   function holdHands(sc){ doPose(sc,'hold'); }
   function petCuddle(sc,pet,w){
@@ -1618,6 +1613,18 @@ details.mini[open] summary:after{content:" ▲"}
     sc.appendChild(box);
     for(let i=0;i<10;i++){ const h=document.createElement('div'); h.innerHTML=pxHeart(i%2?'#FF95A5':'#E06B80',`left:${30+Math.random()*40}%;width:${12+Math.random()*10}px;animation-duration:${2+Math.random()*1.5}s`); sc.querySelector('.fx').appendChild(h.firstChild); }
     sfx.fanfare(); setTimeout(()=>box.remove(),2600);
+  }
+  /* 先戳一個、再戳另一個 → 隨機一種兩人互動 */
+  function twoPlay(sc,first){
+    const a=rand(['hold','pat','hug','hi5','dance','feed','heart']);
+    if(a==='dance') danceTime(sc); else if(a==='feed') feedTime(sc,first); else if(a==='heart') heartCombo(sc); else doPose(sc,a);
+  }
+  /* 下雨：寵物躲到傘下 */
+  function petUnderUmb(sc){
+    const pet=sc.querySelector('.pet'); if(!state.rain||!pet||pet.classList.contains('perch')) return;
+    const cs=[...sc.querySelectorAll('.duo .who .umbc')]; if(!cs.length) return;
+    const u=cs[cs.length-1].getBoundingClientRect(), r=sc.getBoundingClientRect(), pw=pet.getBoundingClientRect().width;
+    pet.style.marginLeft='0'; pet.style.right='auto'; pet.style.left=(u.left-r.left+u.width/2-pw/2+(cs.length>1?0:14))+'px';
   }
   /* 鬧脾氣 → 另一個人去哄 */
   function sulkView(w,who,on){ const old=w.querySelector('svg'); if(old) w.replaceChild(person(who,4,false,undefined,on?{back:true,umb:w.dataset.umb}:{umb:w.dataset.umb}),old); w.classList.toggle('sulk',on); }
