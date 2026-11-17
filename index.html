@@ -469,8 +469,6 @@ details.mini[open] summary:after{content:" ▲"}
 @keyframes shoot{from{translate:0 0;opacity:1}to{translate:-180px 70px;opacity:0}}
 
 .who.both{position:relative}
-.acts{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px 2px;justify-content:center}
-.acts .tg{font-size:13px}
 .scene.dancing .duo .who svg{animation:dance .6s steps(2) infinite;transform-origin:50% 100%}
 .scene.dancing .duo .who.xx svg{animation-delay:-.3s}
 .scene.dancing .pet svg{animation:dance .5s steps(2) infinite}
@@ -551,7 +549,7 @@ details.mini[open] summary:after{content:" ▲"}
 
   <section class="card" id="todayCard">
     <div class="win pink tog-bar" id="todayBar"><i></i><i></i><i></i><span>今天的狀態.exe</span><button class="win-tog" id="todayTog" aria-expanded="true">收起 ▲</button></div>
-    <div class="today-in"><div class="lcd" id="lcd"></div><div id="preview"></div><div class="acts" id="acts"><button class="tg" data-act="hi5">✋ 擊掌</button><button class="tg" data-act="dance">💃 跳舞</button><button class="tg" data-act="feed">🥄 餵食</button><button class="tg" data-act="heart">💕 比心</button></div>
+    <div class="today-in"><div class="lcd" id="lcd"></div><div id="preview"></div>
     <div class="body">
       <div class="st-row"><span class="lab">跟誰吃</span><span class="st-btns" id="withBtns"></span></div>
       <div class="st-row"><span class="lab">餓度</span><span class="st-btns" id="moodBtns"></span></div>
@@ -1181,8 +1179,8 @@ details.mini[open] summary:after{content:" ▲"}
       dx=8; put(xx,dx,0); put(zn,0,dz);
       const za=zn.m.get('10,12')||SK, xa=xx.m.get('1,12')||SK;
       for(let x=9;x<=15;x++) set(x,17+dz-1,za);       // 張恩抱住璿璿的腰
-      for(let x=2;x<=9;x++) set(x,13,xa);             // 璿璿摟住張恩的肩
-      set(16,16+dz-1,SK); set(1,13,SK);
+      for(let x=2;x<=9;x++) set(x,11+dz,xa);          // 璿璿摟住張恩的肩膀
+      set(16,16+dz-1,SK); set(1,11+dz,SK);
       heart(6,-6);
     }
     const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
@@ -1502,6 +1500,12 @@ details.mini[open] summary:after{content:" ▲"}
     if(sc._sulk){ if(who===sc._sulk){ say.textContent=rand(['哼！😤','不要理我！','還戳！','（假裝沒聽到）']); say.classList.add('on'); hopEl(w,'poke'); sfx.huff(); } else comfort(sc,who); return; }
     // 先戳一個、再戳另一個 → 牽手
     if(lastPoke&&lastPoke.who!==who&&now-lastPoke.t<1800&&sc.querySelectorAll('.who').length===2){ const first=lastPoke.who; lastPoke=null; taps=[]; doPose(sc,first==='zn'?'hold':'pat'); return; }
+    // 隔一陣子第一次戳 → 有一半機會觸發兩人互動（擊掌／跳舞／餵食／比心）
+    const fresh=!lastPoke||now-lastPoke.t>1600;
+    if(fresh&&!sc._posing&&sc.querySelectorAll('.duo .who').length===2&&Math.random()<.5){
+      lastPoke=null; samePokes=0; const a=rand(['hi5','dance','feed','heart']);
+      if(a==='hi5') doPose(sc,'hi5'); else if(a==='dance') danceTime(sc); else if(a==='feed') feedTime(sc,who); else heartCombo(sc);
+      return; }
     // 一直戳同一個人 5 次 → 鬧脾氣
     samePokes=(lastPoke&&lastPoke.who===who&&now-lastPoke.t<1600)?samePokes+1:1;
     if(samePokes>=5&&sc.querySelectorAll('.duo .who').length===2){ samePokes=0; lastPoke=null; sulk(sc,who); return; }
@@ -1672,8 +1676,6 @@ details.mini[open] summary:after{content:" ▲"}
     pv.addEventListener('click',e=>{ if(fired&&e.target.closest('.pet,.who')){ e.stopImmediatePropagation(); fired=false; } },true);
     pv.addEventListener('contextmenu',e=>{ if(e.target.closest('.who')) e.preventDefault(); });
   })();
-  document.getElementById('acts').addEventListener('click',e=>{ const b=e.target.closest('[data-act]'); if(!b||preview._posing) return; wakePet(preview);
-    const a=b.dataset.act; if(a==='hi5') doPose(preview,'hi5'); else if(a==='dance') danceTime(preview); else if(a==='feed') feedTime(preview); else heartCombo(preview); });
   /* 寵物設定列 */
   function renderPetRow(){
     const lv=petLv(), nx=petNext(), f=state.pet.fed;
@@ -1726,7 +1728,6 @@ details.mini[open] summary:after{content:" ▲"}
   function renderChars(){
     const who=eatWho(); renderLcd(); renderPetRow(); renderPeek();
     buildScene(preview,{who,say:statusLines(),cls:who.length===1?'solo':''});
-    document.getElementById('acts').hidden=who.length!==2;
     document.getElementById('withBtns').innerHTML=WITH.map(w=>`<button class="tg ${state.eatWith===w.id?'on':''}" data-with="${w.id}">${w.name}</button>`).join('');
     document.getElementById('moodBtns').innerHTML=MOODS.map(m=>`<button class="tg ${state.mood===m.id?'on':''}" data-mood="${m.id}">${m.name}</button>`).join('');
     const mm=MOODS.find(m=>m.id===state.mood)||MOODS[1];
