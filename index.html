@@ -476,7 +476,7 @@ details.mini[open] summary:after{content:" ▲"}
 .note{position:absolute;bottom:45%;z-index:5;font-size:18px;color:var(--ink);font-style:normal;pointer-events:none;animation:noteUp 1.6s steps(8) infinite}
 @keyframes noteUp{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-70px);opacity:0}}
 .who.both .say{white-space:nowrap}
-.scene.rain:not(.yay) .pet:not(.perch){bottom:34px}
+.scene.rain:not(.yay) .pet:not(.perch) .tag{visibility:hidden}
 .scene.rain .duo{gap:84px}
 .scene.rain:not(.yay):not(.solo) .duo{gap:0}
 .scene.rain:not(.yay):not(.solo) .duo .who.xx{margin-left:-8px}
@@ -1153,7 +1153,7 @@ details.mini[open] summary:after{content:" ▲"}
   }
   // 誰拿傘：solo＝自己右手撐、share＝璿璿左手幫兩個人撐、none＝不拿
   function umbSpec(who,mode){
-    if(mode==='share') return who==='xx'?{c:0,r:14,bot:-6,col:['3','4']}:null;
+    if(mode==='share') return who==='xx'?{c:0,r:19,bot:-6,col:['3','4']}:null;
     if(mode!=='solo') return null;
     return who==='zn'?{c:11,r:10,bot:-2,col:['1','2']}:{c:11,r:10,bot:-6,col:['3','4']};
   }
@@ -1235,7 +1235,7 @@ details.mini[open] summary:after{content:" ▲"}
       heart(6,-6);
     }
     if(state.rain){ // 兩個人靠在一起：璿璿撐一把大傘
-      const mid=Math.round((dx+11)/2), r=Math.ceil((dx+12)/2)+1, rows=canopyRows(r,'3','4'), H=rows.length-2, top=-6-H-1, xa=xx.m.get('1,12')||SK;
+      const mid=Math.round((dx+11)/2), r=Math.ceil((dx+12)/2)+5, rows=canopyRows(r,'3','4'), H=rows.length-2, top=-6-H-1, xa=xx.m.get('1,12')||SK;
       for(let y=top;y<=12;y++) set(mid,y,K);
       rows.forEach((row,yy)=>[...row].forEach((c,x)=>{ if(c!=='.') set(mid-r+x,top+yy,PAL[c]); }));
       for(let x=Math.min(mid+1,dx);x<=Math.max(mid+1,dx);x++) set(x,11,xa);
@@ -1588,9 +1588,10 @@ details.mini[open] summary:after{content:" ▲"}
     duo.appendChild(box); hopEl(box,'poke'); if(pose==='hi5') sfx.clap(); else if(pose.startsWith('feed')) sfx.plop(); else sfx.chime();
     const pet=sc.querySelector('.pet'), oldL=pet&&pet.style.left;
     if(pet&&!pet.classList.contains('perch')&&!state.rain){ pet.style.transition='left .5s steps(5)'; pet.style.marginLeft='0'; pet.style.left='12%'; }
+    else if(pet&&state.rain&&!pet.classList.contains('perch')){ const bs=box.querySelector('svg').getBoundingClientRect(), rs=sc.getBoundingClientRect(), pw=pet.getBoundingClientRect().width; pet.style.marginLeft='0'; pet.style.left=(bs.left-rs.left+bs.width/2-pw/2+10)+'px'; }   // 下雨：寵物跟著躲在大傘下
     else if(pet){ pet.style.transition='left .5s steps(5)'; pet.style.left=Math.min(parseFloat(oldL)+70,sc.clientWidth-120)+'px'; }   // 鸚鵡先飛開，不要擋到兩個人
     if(pet) setTimeout(()=>{ petSay(pet,L.pet[state.pet.type],2000); hopEl(pet,'hop2'); },800);
-    setTimeout(()=>{ box.remove(); kids.forEach(k=>k.style.display=''); sc._posing=false; if(pet&&!pet.classList.contains('perch')){ if(!state.rain){ pet.style.left=oldL||''; pet.style.marginLeft=''; } } else if(pet) pet.style.left=oldL; },4200);
+    setTimeout(()=>{ box.remove(); kids.forEach(k=>k.style.display=''); sc._posing=false; if(pet&&!pet.classList.contains('perch')){ if(!state.rain){ pet.style.left=oldL||''; pet.style.marginLeft=''; } else petUnderUmb(sc); } else if(pet) pet.style.left=oldL; },4200);
   }
   function holdHands(sc){ doPose(sc,'hold'); }
   function petCuddle(sc,pet,w){
@@ -1624,7 +1625,7 @@ details.mini[open] summary:after{content:" ▲"}
     const pet=sc.querySelector('.pet'); if(!state.rain||!pet||pet.classList.contains('perch')) return;
     const cs=[...sc.querySelectorAll('.duo .who .umbc')]; if(!cs.length) return;
     const u=cs[cs.length-1].getBoundingClientRect(), r=sc.getBoundingClientRect(), pw=pet.getBoundingClientRect().width;
-    pet.style.marginLeft='0'; pet.style.right='auto'; pet.style.left=(u.left-r.left+u.width/2-pw/2+(cs.length>1?0:14))+'px';
+    pet.style.marginLeft='0'; pet.style.right='auto'; pet.style.left=(u.left-r.left+u.width/2-pw/2+(cs.length>1?0:-6))+'px';
   }
   /* 鬧脾氣 → 另一個人去哄 */
   function sulkView(w,who,on){ const old=w.querySelector('svg'); if(old) w.replaceChild(person(who,4,false,undefined,on?{back:true,umb:w.dataset.umb}:{umb:w.dataset.umb}),old); w.classList.toggle('sulk',on); }
