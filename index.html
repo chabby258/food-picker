@@ -1311,10 +1311,12 @@ details.mini[open] summary:after{content:" ▲"}
   /* 寵物 */
   if(!state.pet) state.pet={type:'cat',name:'咪咪',fed:0};
   Object.assign(PAL,{j:'#EDB664',J:'#C98A3A',h:'#FFE9C4',e:'#3D4A57',i:'#F4A7A0',d:'#3B3F45',t:'#E08E4A',E:'#2A2D33'});
+  Object.assign(PAL,{u:'#4A6A8A',C:'#7B4A2A',z:'#4E2C17',l:'#D9A574',h:'#FFF1DC',j:'#EDA85C',J:'#C9823A'});
   const PET={
-    cat:["..J..........J..",".JjJ........JjJ.",".JijJjjjjjjJjiJ.",".jijjjjjjjjjjij.","jjjjjjjjjjjjjjjj","jjjjWejjjjWejjjj","jjjjeejjjjeejjjj","jjjjhhhpphhhjjjj",".jjjhhhKKhhhjjj.","..jjjhhhhhhjjj..","..Jjjhhhhhhjj...",".JjjjhhhhhhjjjJ.",".jjjjhhhhhhjjjjJ",".jjjjjhhhhjjjjjJ",".jhhjjjjjjjjhhjJ",".hhhh.jjjj.hhhhJ"],
-    dog:["...ddd..............","..dddddE.......d....",".ddKdddEE......d....","KttddddEEE.....d....",".tttttdEEddddddd....","..ptttrrrddddddd....","...ttWrtdddddddt....","....tttttttttttt....","....tt.tt...tt.tt...","....tt.tt...tt.tt..."]
+    cat:[".J...J........","JiJ.JiJ.......","jjjhjjj.......","jujhujJjjjj...","jhhphhJjjjjj..",".hhhhhjjjjjjj.",".hhhjjjjjjjjjj",".hhjjjjjjjjjjj","..hhjjjjjjjjJ.","..hh.jjjjjjJJ."],
+    dog:["...zCz..............","..CCCCC........C....",".CKCCCzz.......C....","KllCCzzzz....CC.....",".lllCzzzzCCCCCC.....","...ppzzzCCCCCCC.....","...CCCzzCCCCCCl.....","...CCCCCCCCCCCC.....","...ll.ll...ll.ll...."]
   };
+
 
   const petLv=()=>{ const f=state.pet.fed; return f<5?1:f<15?2:f<30?3:4; };
   const petNext=()=>[5,15,30,Infinity][petLv()-1];
@@ -1322,13 +1324,13 @@ details.mini[open] summary:after{content:" ▲"}
     const rows=PET[state.pet.type].map(r=>r.split(''));
     const wx=state.rain?'rain':curWx();
     const cat=state.pet.type==='cat';
-    if(wx==='cold'){ if(cat){ for(let x=3;x<13;x++) rows[9][x]='r'; rows[10][11]='r'; rows[11][11]='r'; } else { for(let y=4;y<7;y++) for(let x=9;x<15;x++) if(rows[y][x]==='d') rows[y][x]='r'; } }
-    if(wx==='rain'){ if(cat){ for(let x=1;x<15;x++){ rows[0][x]='y'; if(rows[1][x]!=='.') rows[1][x]='y'; } rows[1][0]='y'; rows[1][15]='y'; } else { for(let y=4;y<7;y++) for(let x=9;x<15;x++) if(rows[y][x]==='d') rows[y][x]='y'; } }
+    if(wx==='cold'){ if(cat){ for(let x=1;x<7;x++) rows[5][x]='r'; rows[6][2]='r'; } else { for(let y=4;y<8;y++) for(let x=8;x<14;x++) if(rows[y][x]==='C') rows[y][x]='r'; } }
+    if(wx==='rain'){ if(cat){ for(let x=0;x<7;x++){ rows[0][x]='y'; rows[1][x]='y'; } } else { for(let y=4;y<8;y++) for(let x=8;x<14;x++) if(rows[y][x]==='C') rows[y][x]='y'; } }
     SPR.__pet=rows.map(r=>r.join('')); delete SPC['__pet'+unit];
     PAL.o=PAL.o; return sprite('__pet',unit,'','');
   }
   function petHTML(eat){
-    const u=(state.pet.type==='cat'?[0,3,3,4,4]:[0,2,3,3,4])[petLv()];
+    const u=[0,2,2,3,3][petLv()];
     return `<div class="pet ${eat?'eating':''}" title="${esc(state.pet.name)}"><div class="say pet-say"></div>${petSvg(u)}${eat?'<span class="petbowl"></span>':''}<span class="tag">${esc(state.pet.name)}</span></div>`;
   }
   /* 時間＆特別日子的天空效果 */
@@ -1415,7 +1417,7 @@ details.mini[open] summary:after{content:" ▲"}
   /* 寵物設定列 */
   function renderPetRow(){
     const lv=petLv(), nx=petNext(), f=state.pet.fed;
-    document.getElementById('petRow').innerHTML=`<button class="tg ${state.pet.type==='cat'?'on':''}" data-pet="cat">🐱 金漸層</button><button class="tg ${state.pet.type==='dog'?'on':''}" data-pet="dog">🐶 臘腸狗</button>
+    document.getElementById('petRow').innerHTML=`<button class="tg ${state.pet.type==='cat'?'on':''}" data-pet="cat">🐱 金漸層</button><button class="tg ${state.pet.type==='dog'?'on':''}" data-pet="dog">🐶 巧克力臘腸</button>
       <input class="pet-name" id="petName" maxlength="6" value="${esc(state.pet.name)}">
       <span class="pet-lv">Lv.${lv}・吃了 ${f} 餐${nx===Infinity?'・已經長最大了！':`・再 ${nx-f} 餐長大`}</span>`;
   }
