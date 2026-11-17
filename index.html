@@ -450,7 +450,8 @@ details.mini[open] summary:after{content:" ▲"}
 .petbowl{position:absolute;right:-18px;bottom:16px;width:16px;height:8px;background:#76C0EC;border:2px solid var(--ink);border-top:4px solid #C9A06A}
 .pet-name{border:2px solid var(--ink);padding:1px 6px;width:80px;font-size:13px;border-radius:0;outline:none;background:#fff}
 .pet-lv{font-size:12px;color:var(--muted);align-self:center}
-.peek .st-btns{margin-bottom:6px}
+.tm .st-btns{margin-bottom:4px}
+.pet{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 
 /* path-style brand */
 .brand{display:inline-flex;align-items:center;background:#fff!important;border:2px solid var(--ink)!important;border-radius:2px!important;box-shadow:3px 3px 0 var(--ink)!important;padding:3px 10px 3px 8px!important;font-size:17px;letter-spacing:1px;white-space:nowrap}
@@ -533,10 +534,6 @@ details.mini[open] summary:after{content:" ▲"}
         <div class="wr" id="wrZn"></div>
         <div class="wr-who"><span class="tagz xx">璿璿</span><button class="tg" id="gXx">👓 眼鏡</button></div>
         <div class="wr" id="wrXx"></div>
-      </details>
-      <details class="wardrobe peek"><summary class="wr-h">🎁 偷看彩蛋 <small>先看看特別的日子長怎樣～</small></summary>
-        <div class="wr-who"><span class="tagz zn">時間</span></div><div class="st-btns" id="peekTp"></div>
-        <div class="wr-who"><span class="tagz xx">日子</span></div><div class="st-btns" id="peekSp"></div>
       </details>
     </div>
   </div>
@@ -1397,7 +1394,7 @@ details.mini[open] summary:after{content:" ▲"}
   let lastKey='';
   function renderLcd(fromTimer){
     const t=tw(), p=n=>String(n).padStart(2,'0'), sp=specialDay();
-    const spTxt=sp?(sp==='anniv'?`💕 在一起 ${annivYears()} 週年`:SP_INFO[sp].banner):'';
+    const spTxt=(previewSp!==null||previewTp)?'⏰ 時光機模式中・點這裡回到現在':(sp?(sp==='anniv'?`💕 在一起 ${annivYears()} 週年`:SP_INFO[sp].banner):'');
     document.getElementById('lcd').innerHTML=`<div class="lcd-l"><b>${t.y}/${p(t.m)}/${p(t.d)}（${WD[t.wd]}）</b><span>台灣 ${p(t.h)}:${p(t.mi)}</span></div>
       <div class="lcd-l"><span>💕 在一起第 <b>${togetherDays()}</b> 天</span><span>${TP_NAME[timePhase()]}</span></div>${spTxt?`<div class="lcd-sp">${spTxt}</div>`:''}`;
     const key=timePhase()+'|'+sp+'|'+t.d, changed=lastKey&&key!==lastKey;
@@ -1405,15 +1402,45 @@ details.mini[open] summary:after{content:" ▲"}
     if(fromTimer&&changed){ renderChars(); newWheelSet(); if(state.style==='wheel') drawWheel(); }
   }
   setInterval(()=>renderLcd(true),20000);
+  document.getElementById('lcd').addEventListener('click',()=>{ if(previewSp!==null||previewTp){ previewSp=null; previewTp=null; renderChars(); renderLcd(); sfx.blip(); } });
   /* 偷看彩蛋 */
   const PEEK_TP=[['','現在時間'],['dawn','🌅 早上'],['day','☀️ 白天'],['dusk','🌇 傍晚'],['night','🌙 晚上'],['late','🌌 深夜']];
   const PEEK_SP=[[null,'今天'],['bd_zn','🎂 張恩生日'],['bd_xx','🎂 璿璿生日'],['anniv','💕 紀念日'],['newyear','🎆 元旦'],['cnyeve','🧧 除夕'],['cny','🧧 春節'],['yuanxiao','🏮 元宵'],['val','💌 情人節'],['kids','🎈 兒童節'],['mom','💐 母親節'],['dragon','🐉 端午'],['qixi','🌌 七夕'],['dad','👔 父親節'],['moon','🥮 中秋'],['national','🎆 國慶'],['xmas','🎄 聖誕節'],['nye','🎆 跨年']];
   function renderPeek(){
-    document.getElementById('peekTp').innerHTML=PEEK_TP.map(([k,n])=>`<button class="tg ${(previewTp||'')===k?'on':''}" data-ptp="${k}">${n}</button>`).join('');
-    document.getElementById('peekSp').innerHTML=PEEK_SP.map(([k,n])=>`<button class="tg ${previewSp===k?'on':''}" data-psp="${k===null?'':k}">${n}</button>`).join('');
+    const a=document.getElementById('peekTp'), b=document.getElementById('peekSp'); if(!a||!b) return;
+    a.innerHTML=PEEK_TP.map(([k,n])=>`<button class="tg ${(previewTp||'')===k?'on':''}" data-ptp="${k}">${n}</button>`).join('');
+    b.innerHTML=PEEK_SP.map(([k,n])=>`<button class="tg ${previewSp===k?'on':''}" data-psp="${k===null?'':k}">${n}</button>`).join('');
   }
-  document.getElementById('peekTp').onclick=e=>{ const b=e.target.closest('[data-ptp]'); if(!b) return; previewTp=b.dataset.ptp||null; renderPeek(); renderChars(); renderLcd(); };
-  document.getElementById('peekSp').onclick=e=>{ const b=e.target.closest('[data-psp]'); if(!b) return; previewSp=b.dataset.psp?b.dataset.psp:null; renderPeek(); renderChars(); renderLcd(); };
+  function openTimeMachine(){
+    sfx.chime();
+    openModal('⏰ 時光機.exe','yellow',b=>{
+      b.insertAdjacentHTML('beforeend',`<div class="tm"><p class="m-msg" style="padding-top:4px">要去哪一天看看？</p>
+        <div class="wr-who"><span class="tagz zn">時間</span></div><div class="st-btns" id="peekTp"></div>
+        <div class="wr-who" style="margin-top:10px"><span class="tagz xx">日子</span></div><div class="st-btns" id="peekSp"></div>
+        <div class="btn-row" style="margin:14px 0 6px"><button class="btn yellow" id="tmGo">出發！</button><button class="btn" id="tmNow">回到現在</button></div></div>`);
+      renderPeek();
+      b.querySelector('.tm').addEventListener('click',e=>{
+        const t=e.target.closest('[data-ptp]'), d=e.target.closest('[data-psp]');
+        if(t){ previewTp=t.dataset.ptp||null; renderPeek(); }
+        if(d){ previewSp=d.dataset.psp?d.dataset.psp:null; renderPeek(); }
+      });
+      b.querySelector('#tmGo').onclick=()=>{ closeModal(); renderChars(); renderLcd(); sfx.fanfare(); };
+      b.querySelector('#tmNow').onclick=()=>{ previewTp=null; previewSp=null; closeModal(); renderChars(); renderLcd(); };
+    });
+  }
+  /* 長按寵物 2 秒 → 時光機 */
+  (function(){
+    let timer=null, fired=false;
+    const start=e=>{ const pet=e.target.closest('#preview .pet'); if(!pet) return; fired=false;
+      timer=setTimeout(()=>{ fired=true; const s=pet.querySelector('.pet-say');
+        s.textContent=state.pet.type==='cat'?'喵？要帶你去未來嗎':'汪？要帶你去未來嗎'; s.classList.add('on');
+        setTimeout(()=>{ s.classList.remove('on'); openTimeMachine(); },900); },2000); };
+    const stop=()=>{ clearTimeout(timer); timer=null; };
+    const pv=document.getElementById('preview');
+    pv.addEventListener('pointerdown',start); ['pointerup','pointerleave','pointercancel'].forEach(ev=>pv.addEventListener(ev,stop));
+    pv.addEventListener('contextmenu',e=>{ if(e.target.closest('.pet')) e.preventDefault(); });
+    pv.addEventListener('click',e=>{ if(fired&&e.target.closest('.pet')){ e.stopImmediatePropagation(); fired=false; } },true);
+  })();
   /* 寵物設定列 */
   function renderPetRow(){
     const lv=petLv(), nx=petNext(), f=state.pet.fed;
