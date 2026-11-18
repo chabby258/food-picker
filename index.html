@@ -855,7 +855,8 @@ details.mini[open] summary:after{content:" ▲"}
   const catOf=id=>CATS.find(c=>c.id===id)||CATS[0];
   const esc=s=>s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   // 依台灣時間換清單：5:00–10:30 早餐、21:00–5:00 宵夜，其他時間午晚餐
-  function mealNow(){ if(state.timeMenu===false) return null; const t=tw(), hm=t.h*60+t.mi; if(hm>=300&&hm<630) return 'b'; if(hm>=1260||hm<300) return 'n'; return 'd'; }
+  function mealNow(){ if(state.timeMenu===false) return 'd';   // 關掉時一律當午晚餐，早餐不會混進來
+    const t=tw(), hm=t.h*60+t.mi; if(hm>=300&&hm<630) return 'b'; if(hm>=1260||hm<300) return 'n'; return 'd'; }
   function nopeSet(){ return new Set(state.nope&&state.nope.d===dayKey(0)?state.nope.names:[]); }
   const basePool=()=>{ const all=state.items.filter(i=>!state.off.includes(i.cat)&&activeTiers().includes(i.tier||'normal'));
     const ml=mealNow(); let b=ml?all.filter(i=>(i.meal||'bdn').includes(ml)):all; if(!b.length) b=all;
@@ -2309,7 +2310,7 @@ details.mini[open] summary:after{content:" ▲"}
     document.getElementById('wdSave').classList.toggle('on',state.weekdaySave);
     document.getElementById('timeMenu').classList.toggle('on',state.timeMenu!==false);
     const ml=mealNow(), nn=[...nopeSet()];
-    document.getElementById('mealNote').innerHTML=(ml==='b'?'🍳 現在是早餐時間（5:00–10:30），只抽早餐':ml==='n'?'🌙 現在是宵夜時間（晚上 9 點後），只抽宵夜':ml==='d'?'🕘 現在抽午晚餐；早上會自動換早餐、晚上 9 點後換宵夜':'')
+    document.getElementById('mealNote').innerHTML=(ml==='b'?'🍳 現在是早餐時間（5:00–10:30），只抽早餐':ml==='n'?'🌙 現在是宵夜時間（晚上 9 點後），只抽宵夜':ml==='d'?(state.timeMenu===false?'🕘 依時間換清單已關閉：一律抽午晚餐（早餐不會出現）':'🕘 現在抽午晚餐（早餐不會出現）；早上會自動換早餐、晚上 9 點後換宵夜'):'')
       +(nn.length?`<br>🙅 今天不要：${nn.map(esc).join('、')} <button class="tg" id="nopeClear">全部恢復</button>`:'');
     document.getElementById('tierNote').textContent = auto ? '今天是平日，自動只抽「💰 150內」的～週末才會恢復' : (state.weekdaySave ? '今天是週末，預算可以自己選 🎉' : '點一下開關預算等級；打開「平日自動省錢」後，週一到週五只抽省錢的');
   }
