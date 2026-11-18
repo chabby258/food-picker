@@ -790,8 +790,8 @@ details.mini[open] summary:after{content:" ▲"}
     ['小籠包','cn','normal','d','\uE13D',["............", "...W....W...", "..WWW..WWW..", ".WWqWW.WqWW.", ".WWWWW.WWWW.", "tttttttttttt", "tbtbtbtbtbtb", "tttttttttttt", ".tttttttttt."]],
     ['烤鴨','cn','treat','d','\uE13E',["............", "......mm....", "....mmmmm...", "..mmmMmmmm..", ".mmMmmmmmmm.", ".mmmmmMmmmm.", "..mmmmmmmm.w", "...mmmmmm.ww", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
     ['沙拉','light','normal','d','\uE13F',["............", "....g.......", "..gGgr.lg...", "..lgGrrgGl..", ".gGlgYwlgGgr", "gggggggggggg", "wwwwwwwwwwww", ".llllllllll.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]],
-    ['三明治','light','save','bd','\uE140',["............", "tttt........", "twwtt.......", "twwwtt......", "tggggtt.....", "tPPPPPtt....", "tyyyyyytt...", "twwwwwwwtt..", "tttttttttt.."]],
-    ['飯糰','light','save','bd','\uE141',["............", ".....ww.....", "....wwww....", "...wwwwww...", "..wwwwwwww..", ".wwwwwwwwww.", ".wwwddddwww.", "wwwwddddwwww", "wwwwddddwwww"]],
+    ['三明治','bf','save','b','\uE140',["............", "tttt........", "twwtt.......", "twwwtt......", "tggggtt.....", "tPPPPPtt....", "tyyyyyytt...", "twwwwwwwtt..", "tttttttttt.."]],
+    ['飯糰','bf','save','b','\uE141',["............", ".....ww.....", "....wwww....", "...wwwwww...", "..wwwwwwww..", ".wwwwwwwwww.", ".wwwddddwww.", "wwwwddddwwww", "wwwwddddwwww"]],
     ['健康餐盒','light','normal','d','\uE142',["............", "............", "GGGGGGGGGGGG", "GtbtbGWWWWWG", "GbtbtGWqWWqG", "GtbtbGWWWWWG", "GGGGGGGGGGGG", "GgGgGGwwYwwG", "GGgGgGwYYYwG", "GGGGGGGGGGGG"]],
     ['素食','light','save','d','\uE143',["............", "...g.....g..", "..gGg.tt.gGg", "..ggbbttbgg.", ".gGbBbttbBgG", "llllllllllll", "bbbbbbbbbbbb", ".BBBBBBBBBB.", "..bbbbbbbb..", "...bbbbbb...", "....AAAA...."]],
     ['蛋餅','bf','save','b','\uE144',["............", "............", "............", "..WWW..WWW..", ".WyyyW.WyyyW", ".WyWyW.WyWyW", ".WyyyW.WyyyW", "..WWW..WWW..", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
@@ -809,10 +809,11 @@ details.mini[open] summary:after{content:" ▲"}
   let state=load();
   { // 菜單升級：補上新菜、換成專屬圖示、價位改成每人金額
     const byName=new Map(DEFAULT.map(d=>[d.name,d]));
+    if((state.menuVer||1)>=2&&state.menuVer<3){ state.items.forEach(it=>{ const d=byName.get(it.name); if(d&&(it.name==='三明治'||it.name==='飯糰')) Object.assign(it,{cat:d.cat,meal:d.meal}); }); state.menuVer=3; }
     if((state.menuVer||1)<2){
       state.items.forEach(it=>{ const d=byName.get(it.name); if(d) Object.assign(it,{cat:d.cat,tier:d.tier,meal:d.meal}); else { if(!CATS.some(c=>c.id===it.cat)) it.cat='west'; it.meal='bdn'; } });
       DEFAULT.forEach(d=>{ if(!state.items.some(i=>i.name===d.name)) state.items.push({...d}); });
-      state.off=[]; state.menuVer=2;
+      state.off=[]; state.menuVer=3;
     }
     state.items.forEach(it=>{ const d=byName.get(it.name); if(d){ it.emoji=d.emoji; if(!it.meal) it.meal=d.meal; } else if(!it.meal) it.meal='bdn'; });
   }
