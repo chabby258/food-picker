@@ -674,8 +674,9 @@ details.mini[open] summary:after{content:" ▲"}
       <p class="hint">點一下可以開關類別，只會從開著的類別裡抽。</p>
       <h2 class="sec" style="margin-top:18px"><span>預算</span></h2>
       <div class="chips" id="tierChips"></div>
-      <div style="margin-top:10px"><button class="tg" id="wdSave">💼 平日自動省錢</button></div>
+      <div style="margin-top:10px"><button class="tg" id="wdSave">💼 平日自動省錢</button> <button class="tg" id="timeMenu">🕘 依時間換清單</button></div>
       <p class="hint" id="tierNote"></p>
+      <p class="hint" id="mealNote"></p>
     </div>
   </section>
 
@@ -686,7 +687,7 @@ details.mini[open] summary:after{content:" ▲"}
         <div class="add">
           <input id="newName" maxlength="12" placeholder="想加什麼？例如：巷口便當">
           <select id="newCat"></select>
-          <select id="newTier"><option value="save">省錢</option><option value="normal" selected>一般</option><option value="treat">大餐</option></select>
+          <select id="newTier"><option value="save">150內</option><option value="normal" selected>150–400</option><option value="treat">400+</option></select>
           <button class="btn sm navy" id="addBtn">＋加入</button>
         </div>
         <div class="list" id="list"></div>
@@ -718,25 +719,103 @@ details.mini[open] summary:after{content:" ▲"}
 
   /* ---------- data ---------- */
   const CATS = [
-    {id:'rice',name:'飯類',emoji:'🍚'},{id:'noodle',name:'麵類',emoji:'🍜'},{id:'snack',name:'小吃',emoji:'🥟'},
-    {id:'world',name:'異國料理',emoji:'🍔'},{id:'hotpot',name:'鍋物',emoji:'🍲'},{id:'light',name:'輕食',emoji:'🥗'}
+    {id:'rice',name:'飯類',emoji:'🍚'},{id:'noodle',name:'麵類',emoji:'🍜'},{id:'snack',name:'小吃夜市',emoji:'🥟'},
+    {id:'jp',name:'日式',emoji:'🍣'},{id:'kr',name:'韓式',emoji:'🥘'},{id:'sea',name:'泰越南洋',emoji:'🌶️'},
+    {id:'west',name:'西式速食',emoji:'🍔'},{id:'hotpot',name:'鍋物',emoji:'🍲'},{id:'bbq',name:'燒肉燒烤',emoji:'🥩'},
+    {id:'cn',name:'中式港式',emoji:'🥢'},{id:'light',name:'輕食',emoji:'🥗'},{id:'bf',name:'早餐',emoji:'🍳'}
   ];
-  const TIER={save:'💰 省錢',normal:'🙂 一般',treat:'🎉 大餐'};
-  const TIER_OF={};
-  ['滷肉飯','炒飯','自助餐','乾麵','鍋燒意麵','涼麵','水餃','肉圓','臭豆腐','蔥抓餅','蚵仔煎','鹽酥雞','飯糰','三明治'].forEach(n=>TIER_OF[n]='save');
-  ['壽司','麻辣鍋','薑母鴨','羊肉爐'].forEach(n=>TIER_OF[n]='treat');
-  const DEFAULT = [
-    ['滷肉飯','rice','🍚'],['雞腿便當','rice','🍗'],['咖哩飯','rice','🍛'],['炒飯','rice','🍳'],['丼飯','rice','🍱'],['燒臘飯','rice','🍖'],['自助餐','rice','🍱'],
-    ['牛肉麵','noodle','🍜'],['乾麵','noodle','🍝'],['鍋燒意麵','noodle','🍜'],['義大利麵','noodle','🍝'],['拉麵','noodle','🍜'],['涼麵','noodle','🥢'],
-    ['水餃','snack','🥟'],['鹽酥雞','snack','🍗'],['蚵仔煎','snack','🍳'],['肉圓','snack','🥟'],['臭豆腐','snack','🍢'],['蔥抓餅','snack','🫓'],
-    ['韓式拌飯','world','🥘'],['泰式打拋','world','🌶️'],['越南河粉','world','🍲'],['漢堡','world','🍔'],['壽司','world','🍣'],['披薩','world','🍕'],
-    ['小火鍋','hotpot','🍲'],['麻辣鍋','hotpot','🔥'],['薑母鴨','hotpot','🍲'],['羊肉爐','hotpot','🍲'],
-    ['沙拉','light','🥗'],['三明治','light','🥪'],['飯糰','light','🍙'],['健康餐盒','light','🥦']
-  ].map(([name,cat,emoji])=>({name,cat,emoji,tier:TIER_OF[name]||'normal'}));
+  const TIER={save:'💰 150內',normal:'🙂 150–400',treat:'🎉 400+'};
+  /* 每道菜：名稱、類別、預算（每人）、時段（b 早餐／d 午晚餐／n 宵夜）、專屬像素圖示 */
+  const FOOD_DEF=[['滷肉飯','rice','save','d','\uE100',["............", "............", "....BB......", "..BBbBBbBy..", ".BbBbbBbByy.", "wwwwwwwwwwww", "wwwwwwwwwwww", ".rrrrrrrrrr.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]],
+    ['雞肉飯','rice','save','d','\uE101',["............", "............", "...tWt......", "..WtWWtWy...", ".tWWtWtWWyy.", "wwwwwwwwwwww", "wwwwwwwwwwww", ".ssssssssss.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]],
+    ['雞腿便當','rice','normal','d','\uE102',["............", ".......Om...", "......Ommm..", "......mmmm..", ".....wOmm...", "bbbbwwbbbbbb", "bwwwwwbgggyb", "bwkwwwbgGgyb", "bwwwwkbgggyb", "bbbbbbbbbbbb"]],
+    ['排骨便當','rice','save','d','\uE103',["............", "............", "..OOOOOOOO..", ".OmOOmOOmOO.", ".OOOmOOOOmO.", "bbOOOOOOOObb", "bwwwwwbyyygb", "bwwkwwbyygGb", "bwwwwwbyyygb", "bbbbbbbbbbbb"]],
+    ['咖哩飯','rice','normal','d','\uE104',["............", "............", "............", "..www.......", ".wwwwwYYYYY.", ".wwwwYYoYYY.", ".wwwYYYYtYY.", "..wwYoYYYY..", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['炒飯','rice','save','dn','\uE105',["............", "............", "....hhhh....", "...hhghhh...", "..hhrhhhgh..", "..hghhhhrh..", ".hhhhghhhhh.", ".hrhhhhghhh.", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['燒臘飯','rice','normal','d','\uE106',["............", "............", "............", "..RrRrR.....", ".rRrRrRMMM..", "wwwwwwMMbMM.", "wwwwwwwMMM..", ".wwwggwwww..", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['自助餐','rice','save','d','\uE107',["............", "............", "AAAAAAAAAAAA", "AwwwAgggAmmA", "AwwwAgGgAmMA", "AwwwAgggAmmA", "AAAAAAAAAAAA", "AyyyyAtttttA", "AyYyyAtttttA", "AAAAAAAAAAAA"]],
+    ['燴飯','rice','save','d','\uE108',["............", "............", "............", "...CCCCC....", "..CCgCCoC...", ".CCoCCCgCC..", "wwCCCCCCCww.", "wwwwwwwwwww.", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['牛肉麵','noodle','normal','dn','\uE109',["............", "............", "...MM..MM...", "..MmMgMmMg..", ".gMMhhhMMgh.", "rrrrrrrrrrrr", "wwwwwwwwwwww", ".nnnnnnnnnn.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]],
+    ['乾麵','noodle','save','d','\uE10A',["............", "............", "....hhhh....", "..hhBhhgh...", ".hhhhBhhhgh.", "hhhhhhhhhhhh", "wwwwwwwwwwww", ".rrrrrrrrrr.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]],
+    ['鍋燒意麵','noodle','save','dn','\uE10B',["............", "....ww......", "...wyyw.pp..", "..hhhhh.pPp.", ".acccccccca.", "aaaaaaaaaaaa", ".aaaaaaaaaa.", ".aaaaaaaaaa.", "..aaaaaaaa.."]],
+    ['涼麵','noodle','save','dn','\uE10C',["............", "............", "............", "...gggg.....", "..hhtthhhh..", ".hhttthhhhh.", ".hhhhhhhhhh.", "..hhhhhhhh..", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['餛飩麵','noodle','save','dn','\uE10D',["............", "............", "...WW...WW..", "..WWWW.WWWW.", ".hWWhhhWWhg.", "cccccccccccc", "wwwwwwwwwwww", ".gggggggggg.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]],
+    ['水餃','snack','save','dn','\uE10E',["............", "............", "..W.W.......", ".WWWWW..W.W.", "WWWqWWWWWWW.", "WWWWWWWWqWWW", ".WWWWWWWWWW.", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['鍋貼','snack','save','dn','\uE10F',["............", "............", "............", ".WWW.WWW.WWW", "WWWWWWWWWWWW", "WqWWWqWWWqWW", "OOOOOOOOOOOO", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['肉圓','snack','save','dn','\uE110',["............", "....jjjj....", "..jjjjjjjj..", ".jjjmmjjjjj.", ".jjrrrrrjjj.", "jjrrrrrrrjjj", ".jrrrgrrrjj.", "..jjjjjjjj..", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['蚵仔煎','snack','save','dn','\uE111',["............", "............", "............", "...pppp.....", "..yyppppyy..", ".yAyygpAyyy.", ".yyyAyyygyy.", "..yyyyyyyy..", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['臭豆腐','snack','save','dn','\uE112',["............", "............", "....lwlw....", "..OOlwlOO...", ".OOOOOOOOO..", ".OYOOOYOOO..", ".OOOOOOOOO..", ".OOYOOOOYO..", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['蔥抓餅','snack','save','bdn','\uE113',["............", "...hhhhhh...", "..hYhhghYh..", ".hhhYhhhhgh.", ".hghhhYhhhh.", ".hhhhghhYhh.", "..hYhhhhhh..", "...hhhhhh...", "..wwwwwwww..", ".wwwwwwwwww."]],
+    ['鹽酥雞','snack','save','dn','\uE114',["............", "...OO.O.....", "..OmOOOOO...", ".OOOgOOmOO..", ".WWWWWWWWW..", ".WWWrrWWWW..", ".WWWrrWWWW..", ".WWWWWWWWW..", ".WWWWWWWWW.."]],
+    ['滷味','snack','save','dn','\uE115',["............", "............", "...G..y.....", "..GGbbyWt...", ".GGbbBbWttg.", "BBBBBBBBBBBB", "wwwwwwwwwwww", ".yyyyyyyyyy.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]],
+    ['鹽水雞','snack','save','dn','\uE116',["............", "............", "............", "...WWW.r....", "..WWWWWggr..", ".WqWWWggWW..", ".WWWqWWWgg..", "..WWWWWWWW..", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['逛夜市','snack','save','dn','\uE117',["rwrwrwrwrwrw", "rwrwrwrwrwrw", ".b........b.", ".b..y..p..b.", ".b.yyy.pp.b.", ".bbbbbbbbbb.", ".bOOOOOOOOb.", ".b........b.", ".b........b."]],
+    ['拉麵','jp','normal','dn','\uE118',["............", ".d..........", ".dd.PPP.wwY.", "..dPPmPPwYYw", ".gdPPPPgwwwh", "CCCCCCCCCCCC", "aaaaaaaaaaaa", ".rrrrrrrrrr.", "..aaaaaaaa..", "...aaaaaa...", "....AAAA...."]],
+    ['丼飯','jp','normal','d','\uE119',["............", "............", "...MMbM.rr..", "..MbMMbMrrw.", ".bMMWMMbMMw.", "wwwwwwwwwwww", "bbbbbbbbbbbb", ".yyyyyyyyyy.", "..bbbbbbbb..", "...bbbbbb...", "....AAAA...."]],
+    ['豬排飯','jp','normal','d','\uE11A',["............", "............", "..OOOOOOOO..", ".OYOYOOYOYO.", ".yOOyyOOyyg.", "wwwwwwwwwwww", "wwwwwwwwwwww", ".nnnnnnnnnn.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]],
+    ['烏龍麵','jp','normal','d','\uE11B',["............", "..........o.", "..OOOOOOOor.", "..WWWWWgWW..", ".WcWWcWWcWg.", "cccccccccccc", "wwwwwwwwwwww", ".ssssssssss.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]],
+    ['壽司','jp','normal','d','\uE11C',["............", "............", "............", "..eeee..rrrr", ".eweeee.rRrr", ".wwwwww.wwww", ".wwwwww.wwww", "pppppppppppp", ".PPPPPPPPPP."]],
+    ['日式定食','jp','normal','d','\uE11D',["............", "............", "bbbbbbbbbbbb", "b.www.AAAAAb", "bwwwwwAmMmAb", "b.aaa.AAAAAb", "b.CCC..gg.yb", "b.aaa..gg.yb", "bbbbbbbbbbbb"]],
+    ['居酒屋','jp','treat','dn','\uE11E',["............", "..wwwww.....", ".wwwwwww....", ".YyyyyyY....", ".yyyYyyyAA..", ".yyyyyyyA.A.", ".yYyyyyyA.A.", ".yyyyyYyAA..", ".yyyyyyy....", "..AAAAA....."]],
+    ['壽喜燒','jp','treat','d','\uE11F',["............", "............", "....MPM.tt..", "..gMPMPgttw.", "aCMPMCgttWYa", "aaaaaaaaaaaa", ".aaaaaaaaaa."]],
+    ['韓式拌飯','kr','normal','d','\uE120',["............", "............", "...gg.oo....", "..ggwwwoob..", ".rrwwYwwbbbl", "rrrrrrrrrrrr", "aaaaaaaaaaaa", ".BBBBBBBBBB.", "..aaaaaaaa..", "...aaaaaa...", "....AAAA...."]],
+    ['部隊鍋','kr','normal','dn','\uE121',["............", "...YY..hhh..", "..PYYpphhhh.", "..PPpppPhhP.", ".ArrrrrrrrA.", "AAAAAAAAAAAA", ".AAAAAAAAAA.", ".AAAAAAAAAA.", "..AAAAAAAA.."]],
+    ['韓式炸雞','kr','normal','dn','\uE122',["............", "..RrR.......", ".rrRrr.RrR..", ".rRrwrrrrRr.", "..rrrrRrwrr.", ".RrrwrrrrR..", "pppppppppppp", "pwwwwwwwwwwp", "pwwwwwwwwwwp", "pppppppppppp"]],
+    ['韓式烤肉','kr','treat','d','\uE123',["............", "..l.........", ".lll..MmM...", ".lGl.mMmMm..", "..AAAAAAAA..", ".AaAaAaAaAA.", "AaAaAaAaAaAA", ".aaaaaaaaaa.", "..aaaaaaaa.."]],
+    ['越南河粉','sea','normal','d','\uE124',["............", "..........g.", "..PP.gg..gyg", "..PPpWWWW.y.", ".gPWWWWPPWg.", "cccccccccccc", "wwwwwwwwwwww", ".pppppppppp.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]],
+    ['泰式打拋','sea','normal','d','\uE125',["............", "............", "...wwww.....", "..wwwYww....", "..wwYYwwBBg.", ".wwwwwwBbBBb", ".wwwwwwBBgBb", "..wwwwwwBBB.", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['海南雞飯','sea','normal','d','\uE126',["............", "............", "............", "..hhhh..WWW.", "..hhhhhWWqWg", ".hhhhhhWWWgg", ".hhhhhhqWWWg", "..hhhhhhWW..", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['印度咖哩','sea','normal','d','\uE127',["............", "............", "...ttt......", "..ttOtt.....", ".ttttttt....", ".tOtttttooo.", "..tttttoooo.", "...tttAAAAA.", "......AAAA.."]],
+    ['泰式料理','sea','treat','d','\uE128',["............", "............", "...r..g..x..", "..rGgxxl.gg.", ".lgxxllGllr.", "llllllllllll", "wwwwwwwwwwww", ".GGGGGGGGGG.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]],
+    ['義大利麵','west','normal','d','\uE129',["............", "............", "....rrrr....", "...rrRrrg...", "..hhrrrhhh..", ".hhhhhhhhhh.", ".hYhhYhhYhh.", "..hhhhhhhh..", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['漢堡','west','normal','dn','\uE12A',["............", "...OOOOOO...", "..OOwOOwOO..", ".OOOOOOOOOO.", ".gggggggggg.", ".yyyyyyyyyy.", ".MMMMMMMMMM.", ".rrrrrrrrrr.", ".OOOOOOOOOO.", "..OOOOOOOO.."]],
+    ['速食','west','save','dn','\uE12B',["............", "..h.h.h.h...", "..hhhhhhhh..", "..hYhhYhhh..", "..rrrrrrrr..", "..rryyyyrr..", "..rryrryrr..", "...rrrrrr...", "...rrrrrr..."]],
+    ['披薩','west','normal','dn','\uE12C',["............", "OOOOOOOOOOOO", "OOOOOOOOOOOO", ".yyryyyyryy.", ".yyyyyGyyy..", "..yryyyyry..", "..yyyGyyy...", "...yyryyy...", "....yyyy....", ".....yy....."]],
+    ['牛排','west','treat','d','\uE12D',["............", "............", "...MMMMMM...", "..MmMMMmMMg.", "..MMMmMMMGg.", "..MMMMMmMg..", ".aaaaaaaaaa.", "aaaaaaaaaaaa", ".bbbbbbbbbb."]],
+    ['小火鍋','hotpot','normal','d','\uE12E',["............", "....g..y....", "...PPgggyy..", "..PPP.ggy.W.", ".AccccccccA.", "AAAAAAAAAAAA", ".AAAAAAAAAA.", ".AAAAAAAAAA.", "..AAAAAAAA.."]],
+    ['麻辣鍋','hotpot','treat','dn','\uE12F',["............", "..R..r..R...", ".rRr.rRr.rR.", "..r.R..rRr..", ".arrrrrrrra.", "aaaaaaaaaaaa", ".aaaaaaaaaa.", ".aaaaaaaaaa.", "..aaaaaaaa.."]],
+    ['涮涮鍋','hotpot','normal','d','\uE130',["..b.........", "..b.b.......", "..bPbP......", "..PPPP..gg..", ".OccccccccO.", "OOOOOOOOOOOO", ".OOOOOOOOOO.", ".OOOOOOOOOO.", "..OOOOOOOO.."]],
+    ['石頭火鍋','hotpot','normal','d','\uE131',["............", "...ll..PP...", "..llll.PPm..", "..lgll.mPm..", ".BCCCCCCCCB.", "BBBBBBBBBBBB", ".BBBBBBBBBB.", ".BBBBBBBBBB.", "..BBBBBBBB.."]],
+    ['薑母鴨','hotpot','treat','dn','\uE132',["............", "...t..t.....", "..MtM.tMM...", "..MMt.MMtM..", ".aBBBBBBBBa.", "aaaaaaaaaaaa", ".aaaaaaaaaa.", ".aaaaaaaaaa.", "..aaaaaaaa.."]],
+    ['羊肉爐','hotpot','treat','dn','\uE133',["............", "....r..r....", "..MMb.MM.r..", "..MbM.MbMg..", ".bWWWWWWWWb.", "bbbbbbbbbbbb", ".bbbbbbbbbb.", ".bbbbbbbbbb.", "..bbbbbbbb.."]],
+    ['火鍋吃到飽','hotpot','treat','d','\uE134',["............", "..PPPPPPPP..", ".PmPmPmPmPP.", "wwwwwwwwwwww", ".AAAAAAAAAA.", "..PPPPPPPP..", ".PmPmPmPmPP.", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['燒肉','bbq','treat','d','\uE135',["............", "..MmM.......", ".mMmMm..PmP.", "..MmM..mPmPm", "aAaAaAaAaAaA", "AaAaAaAaAaAa", ".rororororo.", ".aaaaaaaaaa.", "..aaaaaaaa.."]],
+    ['燒肉吃到飽','bbq','treat','d','\uE136',["............", "............", "............", "..PwPPwP....", "..wPPwPPwP..", ".PPwPmPPwPP.", ".PmPPwPPmPw.", "..PPwPPmPP..", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['串燒','bbq','normal','dn','\uE137',["...b...b....", "..MMM.ggg...", "..MmM.gGg...", "...b...b....", "..MMM.PPP...", "..mMM.PrP...", "...b...b....", "..MMM.ggg...", "..MMm.Ggg...", "...b...b....", "...b...b...."]],
+    ['鐵板燒','bbq','normal','d','\uE138',["..........A.", ".........AA.", "..pPp...AA..", ".ppPp..A....", "..gg.yyy....", "AAAAAAAAAAAA", "aaaaaaaaaaaa", ".a........a."]],
+    ['蒙古烤肉','bbq','normal','d','\uE139',["............", "............", "...hhMg.....", "..MhhhgMhr..", ".hhMhhhgMhh.", "OOOOOOOOOOOO", "aaaaaaaaaaaa", ".rrrrrrrrrr.", "..aaaaaaaa..", "...aaaaaa...", "....AAAA...."]],
+    ['熱炒','cn','normal','dn','\uE13A',["............", "...gr.G.....", "..MgrGmgr...", ".aMmgrGgMa..", "aaaaaaaaaabb", ".aaaaaaaa...", "..r.o.r.o...", ".roryroyro.."]],
+    ['港式點心','cn','normal','d','\uE13B',["............", "............", "..jj..yoy...", ".jjjj.yyyy..", ".jjjj.yyyy..", "tttttttttttt", "tbtbtbtbtbtb", "tttttttttttt", ".tttttttttt."]],
+    ['酸菜魚','cn','normal','d','\uE13C',["............", "....r...r...", "..WWW.r.WW..", "..WqWlWWqWl.", ".lWWWlWWWlrr", "YYYYYYYYYYYY", "wwwwwwwwwwww", ".xxxxxxxxxx.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]],
+    ['小籠包','cn','normal','d','\uE13D',["............", "...W....W...", "..WWW..WWW..", ".WWqWW.WqWW.", ".WWWWW.WWWW.", "tttttttttttt", "tbtbtbtbtbtb", "tttttttttttt", ".tttttttttt."]],
+    ['烤鴨','cn','treat','d','\uE13E',["............", "......mm....", "....mmmmm...", "..mmmMmmmm..", ".mmMmmmmmmm.", ".mmmmmMmmmm.", "..mmmmmmmm.w", "...mmmmmm.ww", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['沙拉','light','normal','d','\uE13F',["............", "....g.......", "..gGgr.lg...", "..lgGrrgGl..", ".gGlgYwlgGgr", "gggggggggggg", "wwwwwwwwwwww", ".llllllllll.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]],
+    ['三明治','light','save','bd','\uE140',["............", "tttt........", "twwtt.......", "twwwtt......", "tggggtt.....", "tPPPPPtt....", "tyyyyyytt...", "twwwwwwwtt..", "tttttttttt.."]],
+    ['飯糰','light','save','bd','\uE141',["............", ".....ww.....", "....wwww....", "...wwwwww...", "..wwwwwwww..", ".wwwwwwwwww.", ".wwwddddwww.", "wwwwddddwwww", "wwwwddddwwww"]],
+    ['健康餐盒','light','normal','d','\uE142',["............", "............", "GGGGGGGGGGGG", "GtbtbGWWWWWG", "GbtbtGWqWWqG", "GtbtbGWWWWWG", "GGGGGGGGGGGG", "GgGgGGwwYwwG", "GGgGgGwYYYwG", "GGGGGGGGGGGG"]],
+    ['素食','light','save','d','\uE143',["............", "...g.....g..", "..gGg.tt.gGg", "..ggbbttbgg.", ".gGbBbttbBgG", "llllllllllll", "bbbbbbbbbbbb", ".BBBBBBBBBB.", "..bbbbbbbb..", "...bbbbbb...", "....AAAA...."]],
+    ['蛋餅','bf','save','b','\uE144',["............", "............", "............", "..WWW..WWW..", ".WyyyW.WyyyW", ".WyWyW.WyWyW", ".WyyyW.WyyyW", "..WWW..WWW..", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['蘿蔔糕','bf','save','b','\uE145',["............", "............", "..OOOO.OOOO.", "..OWWO.OWWO.", "..OWWO.OWWO.", "..OOOO.OOOO.", ".OOOO.......", ".OWWO..rrr..", ".OOOO.......", "wwwwwwwwwwww", ".AAAAAAAAAA."]],
+    ['燒餅油條','bf','save','b','\uE146',["............", "............", "............", ".tWttWttWtt.", "tttttttttttt", "hOhOhOhOhOhO", "tttttttttttt", ".ttWttWttWt."]],
+    ['鐵板麵','bf','save','b','\uE147',["............", "............", "......www...", ".....wwYww..", "..hhBhhwwhh.", ".hBhhBhhBhh.", ".hhBhhhBhhh.", "aaaaaaaaaaaa", ".bbbbbbbbbb."]],
+    ['吐司','bf','save','b','\uE148',["............", "..tttttttt..", ".tWWWWWWWWt.", ".tWWWWWWWWt.", ".tWwwwwwWWt.", ".tWwwYYwwWt.", ".tWwwYYwwWt.", ".tWWwwwwWWt.", ".tWWWWWWWWt.", ".tttttttttt."]],
+    ['清粥小菜','bf','save','bn','\uE149',["............", "............", "...g...Y....", "..gGg.YbY...", ".WWWWWWWWWWW", "WWWWWWWWWWWW", "wwwwwwwwwwww", ".nnnnnnnnnn.", "..wwwwwwww..", "...wwwwww...", "....AAAA...."]]];
+  const FOOD_PX=new Map(FOOD_DEF.map(f=>[f[4],f[5]]));
+  const DEFAULT=FOOD_DEF.map(([name,cat,tier,meal,emoji])=>({name,cat,tier,meal,emoji}));
+  const TIER_OF={}; DEFAULT.forEach(d=>TIER_OF[d.name]=d.tier);
 
   const KEY='food-picker-v2';
   function load(){ try{const s=JSON.parse(localStorage.getItem(KEY)); if(s&&Array.isArray(s.items)) return s;}catch(e){} return {items:DEFAULT.map(x=>({...x})),off:[],history:[],style:'wheel'}; }
   let state=load();
+  { // 菜單升級：補上新菜、換成專屬圖示、價位改成每人金額
+    const byName=new Map(DEFAULT.map(d=>[d.name,d]));
+    if((state.menuVer||1)<2){
+      state.items.forEach(it=>{ const d=byName.get(it.name); if(d) Object.assign(it,{cat:d.cat,tier:d.tier,meal:d.meal}); else { if(!CATS.some(c=>c.id===it.cat)) it.cat='west'; it.meal='bdn'; } });
+      DEFAULT.forEach(d=>{ if(!state.items.some(i=>i.name===d.name)) state.items.push({...d}); });
+      state.off=[]; state.menuVer=2;
+    }
+    state.items.forEach(it=>{ const d=byName.get(it.name); if(d){ it.emoji=d.emoji; if(!it.meal) it.meal=d.meal; } else if(!it.meal) it.meal='bdn'; });
+  }
   state.items.forEach(i=>{ if(!i.tier) i.tier=TIER_OF[i.name]||'normal'; });
   if(!Array.isArray(state.tiers)) state.tiers=['save','normal','treat'];
   if(!Array.isArray(state.eaten)) state.eaten=[];
@@ -750,11 +829,11 @@ details.mini[open] summary:after{content:" ▲"}
   function dayLabel(k){ if(k===dayKey(0)) return '今天'; if(k===dayKey(-1)) return '昨天'; if(k===dayKey(-2)) return '前天'; const p=k.split('-'); return `${+p[1]}/${+p[2]}`; }
   const isWeekday=()=>{ const g=tw().wd; return g>=1&&g<=5; };
   const activeTiers=()=>(state.weekdaySave&&isWeekday())?['save']:state.tiers;
-  const COLD_FOOD=new Set(['涼麵','沙拉','壽司','三明治','飯糰','健康餐盒','海鮮丼']);
-  const SOUP=new Set(['牛肉麵','拉麵','鍋燒意麵','越南河粉','水餃']);
-  const HEAVY=new Set(['雞腿便當','丼飯','燒臘飯','咖哩飯','自助餐','炒飯','漢堡','披薩','韓式拌飯','泰式打拋']);
-  const GREASY=new Set(['鹽酥雞','臭豆腐','麻辣鍋','蚵仔煎','漢堡','披薩','炒飯']);
-  const LIGHT=new Set(['沙拉','健康餐盒','越南河粉','涼麵','三明治','飯糰','壽司','水餃']);
+  const COLD_FOOD=new Set(['涼麵','沙拉','壽司','三明治','飯糰','健康餐盒','鹽水雞','海南雞飯']);
+  const SOUP=new Set(['牛肉麵','拉麵','鍋燒意麵','越南河粉','水餃','餛飩麵','烏龍麵','酸菜魚','部隊鍋','清粥小菜','壽喜燒']);
+  const HEAVY=new Set(['雞腿便當','排骨便當','丼飯','豬排飯','燒臘飯','咖哩飯','自助餐','炒飯','燴飯','漢堡','披薩','牛排','韓式拌飯','泰式打拋','燒肉吃到飽','火鍋吃到飽','蒙古烤肉']);
+  const GREASY=new Set(['鹽酥雞','臭豆腐','麻辣鍋','蚵仔煎','漢堡','披薩','炒飯','韓式炸雞','速食','鍋貼','熱炒','燒肉吃到飽']);
+  const LIGHT=new Set(['沙拉','健康餐盒','越南河粉','涼麵','三明治','飯糰','壽司','水餃','日式定食','素食','清粥小菜','鹽水雞']);
   if(!state.mood) state.mood='normal'; if(!state.eatWith) state.eatWith='both';
   function weightOf(it){
     let w=1; const n=it.name, hot=it.cat==='hotpot';
@@ -764,7 +843,7 @@ details.mini[open] summary:after{content:" ▲"}
     else if(wx==='cool'){ if(hot) w*=1.8; if(SOUP.has(n)) w*=1.6; if(COLD_FOOD.has(n)) w*=.7; }
     const m=state.mood;
     if(m==='starving'){ if(HEAVY.has(n)||hot||it.cat==='rice') w*=2.5; if(it.cat==='light') w*=.4; }
-    else if(m==='craving'){ if(it.cat==='snack') w*=2.5; if(it.cat==='world') w*=1.6; if(it.cat==='light') w*=.6; }
+    else if(m==='craving'){ if(it.cat==='snack') w*=2.5; if(['jp','kr','sea','west'].includes(it.cat)) w*=1.6; if(it.cat==='light') w*=.6; }
     else if(m==='light'){ if(LIGHT.has(n)||it.cat==='light') w*=3; if(GREASY.has(n)) w*=.25; if(hot&&n!=='小火鍋') w*=.4; }
     w*=extraWeight(it);
     return w;
@@ -775,7 +854,12 @@ details.mini[open] summary:after{content:" ▲"}
   function save(){ try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){} }
   const catOf=id=>CATS.find(c=>c.id===id)||CATS[0];
   const esc=s=>s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const basePool=()=>state.items.filter(i=>!state.off.includes(i.cat)&&activeTiers().includes(i.tier||'normal'));
+  // 依台灣時間換清單：5:00–10:30 早餐、21:00–5:00 宵夜，其他時間午晚餐
+  function mealNow(){ if(state.timeMenu===false) return null; const t=tw(), hm=t.h*60+t.mi; if(hm>=300&&hm<630) return 'b'; if(hm>=1260||hm<300) return 'n'; return 'd'; }
+  function nopeSet(){ return new Set(state.nope&&state.nope.d===dayKey(0)?state.nope.names:[]); }
+  const basePool=()=>{ const all=state.items.filter(i=>!state.off.includes(i.cat)&&activeTiers().includes(i.tier||'normal'));
+    const ml=mealNow(); let b=ml?all.filter(i=>(i.meal||'bdn').includes(ml)):all; if(!b.length) b=all;
+    const no=nopeSet(), c=b.filter(i=>!no.has(i.name)); return c.length?c:b; };
   const pool=()=>{ const b=basePool(); if(!state.avoidRecent) return b; const r=recentNames(); const f=b.filter(i=>!r.has(i.name)); return f.length?f:b; };
   const rand=a=>a[Math.floor(Math.random()*a.length)];
   function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -1884,10 +1968,12 @@ details.mini[open] summary:after{content:" ▲"}
       const say=solo?[rand([f=>`一個人也要好好吃${f}！`,f=>`今天就吃${f}～`,f=>`${f}，我來了！`])(item.name)]:[rand(linesZn)(item.name),rand(linesXx)(item.name)];
       buildScene(sc,{who,say,dish:item.emoji,eat:true,cls:'yay'+(solo?' solo':''),unit:4});
       b.insertAdjacentHTML('beforeend',`<div class="m-res">${note?`<div class="label">${note}</div>`:'<div class="label">今天就吃</div>'}<div class="food"><span class="e">${item.emoji}</span><span class="hl">${esc(item.name)}</span></div></div>
-        <div class="btn-row" style="margin:0 0 16px"><button class="btn pink" id="mOk">好！開動</button><button class="btn" id="mAgain">再抽一次</button></div>`);
+        <div class="btn-row" style="margin:0 0 16px"><button class="btn pink" id="mOk">好！開動</button><button class="btn" id="mAgain">再抽一次</button><button class="btn" id="mNope">🙅 不要這個</button></div>`);
       sfx.fanfare();
       b.querySelector('#mOk').onclick=()=>{ recordEaten(item); feedPet(); sfx.coin(); closeModal(); };
       b.querySelector('#mAgain').onclick=()=>{ closeModal(); again(); };
+      b.querySelector('#mNope').onclick=()=>{ if(!state.nope||state.nope.d!==dayKey(0)) state.nope={d:dayKey(0),names:[]};
+        if(!state.nope.names.includes(item.name)) state.nope.names.push(item.name); menuChanged(); closeModal(); again(); };
     }),450);
   }
   function again(){ ({wheel:spinWheel,gacha:spinGacha,slot:spinSlot,cards:()=>{dealCards(true);document.getElementById('cards').scrollIntoView({block:'center',behavior:'smooth'});},vote:()=>(state.vmode==='two'?startTwo:startVote)(),ladder:()=>{newLadder();climb(Math.floor(Math.random()*state.ladder.length));}})[state.style](); }
@@ -2160,7 +2246,7 @@ details.mini[open] summary:after{content:" ▲"}
   function addItem(){
     const inp=document.getElementById('newName'), name=inp.value.trim(); if(!name) return;
     if(state.items.some(i=>i.name===name)){ inp.value=''; inp.placeholder='這個已經有囉！'; return; }
-    const cat=newCat.value; state.items.push({name,cat,emoji:catOf(cat).emoji,tier:document.getElementById('newTier').value}); inp.value=''; inp.placeholder='想加什麼？例如：巷口便當'; menuChanged();
+    const cat=newCat.value; state.items.push({name,cat,emoji:catOf(cat).emoji,tier:document.getElementById('newTier').value,meal:'bdn'}); inp.value=''; inp.placeholder='想加什麼？例如：巷口便當'; menuChanged();
   }
   document.getElementById('addBtn').onclick=addItem;
   document.getElementById('newName').addEventListener('keydown',e=>{if(e.key==='Enter') addItem();});
@@ -2221,20 +2307,38 @@ details.mini[open] summary:after{content:" ▲"}
     const auto=state.weekdaySave&&isWeekday();
     tierEl.innerHTML=Object.entries(TIER).map(([k,v])=>`<button class="chip ${activeTiers().includes(k)?'on':''} ${auto?'locked':''}" data-tier="${k}">${v}・${state.items.filter(i=>i.tier===k).length}</button>`).join('');
     document.getElementById('wdSave').classList.toggle('on',state.weekdaySave);
-    document.getElementById('tierNote').textContent = auto ? '今天是平日，自動只抽「💰 省錢」的～週末才會恢復' : (state.weekdaySave ? '今天是週末，預算可以自己選 🎉' : '點一下開關預算等級；打開「平日自動省錢」後，週一到週五只抽省錢的');
+    document.getElementById('timeMenu').classList.toggle('on',state.timeMenu!==false);
+    const ml=mealNow(), nn=[...nopeSet()];
+    document.getElementById('mealNote').innerHTML=(ml==='b'?'🍳 現在是早餐時間（5:00–10:30），只抽早餐':ml==='n'?'🌙 現在是宵夜時間（晚上 9 點後），只抽宵夜':ml==='d'?'🕘 現在抽午晚餐；早上會自動換早餐、晚上 9 點後換宵夜':'')
+      +(nn.length?`<br>🙅 今天不要：${nn.map(esc).join('、')} <button class="tg" id="nopeClear">全部恢復</button>`:'');
+    document.getElementById('tierNote').textContent = auto ? '今天是平日，自動只抽「💰 150內」的～週末才會恢復' : (state.weekdaySave ? '今天是週末，預算可以自己選 🎉' : '點一下開關預算等級；打開「平日自動省錢」後，週一到週五只抽省錢的');
   }
   tierEl.onclick=e=>{ const b=e.target.closest('[data-tier]'); if(!b) return;
     if(state.weekdaySave&&isWeekday()){ document.getElementById('tierNote').textContent='平日省錢模式中～要改請先關掉「平日自動省錢」'; return; }
     const k=b.dataset.tier; state.tiers=state.tiers.includes(k)?state.tiers.filter(x=>x!==k):[...state.tiers,k]; menuChanged(); };
   document.getElementById('wdSave').onclick=()=>{ state.weekdaySave=!state.weekdaySave; menuChanged(); };
+  document.getElementById('timeMenu').onclick=()=>{ state.timeMenu=state.timeMenu===false; menuChanged(); };
+  document.getElementById('mealNote').onclick=e=>{ if(e.target.closest('#nopeClear')){ state.nope=null; menuChanged(); } };
 
   renderChips(); renderList(); renderTiers(); renderHistory(); renderVMode();
   renderChars();
   setStyle(['wheel','gacha','slot','cards','vote','ladder'].includes(state.style)?state.style:'wheel');
   /* ---------- 所有 emoji 自動轉成像素小圖示 ---------- */
   const PXC=new Map();
+  const FPAL={k:'#3E3A39',w:'#FFFFFF',W:'#FFF1DC',q:'#E6E2DC',A:'#9A9AA5',a:'#55555F',r:'#D9534F',R:'#9E2E2E',o:'#F2A05A',O:'#C9823A',b:'#9C6B48',B:'#6B4A32',
+    y:'#FFE07A',Y:'#F2C14E',g:'#91AE6E',G:'#6F8A52',l:'#C9E0A8',p:'#FF95A5',P:'#FFC2CC',s:'#76C0EC',S:'#DCEFFA',n:'#425B9A',t:'#E8D3A8',m:'#C46A3C',M:'#7B3F22',
+    h:'#F5D27A',c:'#F5E6C8',C:'#E8C27A',j:'#EBCFC0',x:'#8E6BB8',e:'#F59A73',d:'#2E3B2E'};
+  function foodURL(rows){
+    const H=rows.length, S=14, c=document.createElement('canvas'); c.width=S; c.height=S; const x=c.getContext('2d');
+    const oy=Math.floor((12-H)/2)+1, on=(cx,cy)=>{ const r=rows[cy-oy]; return r&&r[cx-1]&&r[cx-1]!=='.'; };
+    x.fillStyle='#3E3A39';
+    for(let y=0;y<S;y++)for(let i=0;i<S;i++){ if(on(i,y)) continue; if(on(i-1,y)||on(i+1,y)||on(i,y-1)||on(i,y+1)) x.fillRect(i,y,1,1); }
+    rows.forEach((r,yy)=>[...r].forEach((ch,xx)=>{ if(FPAL[ch]){ x.fillStyle=FPAL[ch]; x.fillRect(xx+1,yy+oy,1,1); } }));
+    return c.toDataURL();
+  }
   function pxEmojiURL(e){
     if(PXC.has(e)) return PXC.get(e);
+    if(FOOD_PX.has(e)){ const u=foodURL(FOOD_PX.get(e)); PXC.set(e,u); return u; }
     const S=14, c=document.createElement('canvas'); c.width=c.height=S;
     const x=c.getContext('2d'); x.textAlign='center'; x.textBaseline='middle';
     x.font=`${S-3}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
@@ -2250,9 +2354,9 @@ details.mini[open] summary:after{content:" ▲"}
     x.putImageData(d,0,0);
     const url=c.toDataURL(); PXC.set(e,url); return url;
   }
-  const EMO=/\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic}️?)*/gu;
+  const EMO=/\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic}️?)*|[\uE000-\uF8FF]/gu;
   const KEEP_SYM=new Set([0x2600,0x2614,0x2744,0x23F3,0x270D,0x2615,0x26A0]);
-  const isEmoji=m=>{ const cp=m.codePointAt(0); return cp>=0x1F000||m.includes('️')||KEEP_SYM.has(cp); };
+  const isEmoji=m=>{ const cp=m.codePointAt(0); return (cp>=0xE000&&cp<=0xF8FF)||cp>=0x1F000||m.includes('️')||KEEP_SYM.has(cp); };
   function convertText(t){
     const s=t.nodeValue; if(!s) return; EMO.lastIndex=0; if(!EMO.test(s)) return;
     const p=t.parentNode; if(!p||!p.closest||p.closest('option,select,script,style,textarea,svg,canvas,title,.pxe')) return;
